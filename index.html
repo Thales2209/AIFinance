@@ -81,7 +81,7 @@
         };
 
         const { createClient } = supabase;
-        const { useState, useEffect, useMemo, useRef } = React;
+        const { useState, useEffect, useMemo, useRef, useCallback } = React;
         
         // --- Supabase Client ---
         const { supabaseUrl, supabaseKey } = APP_CONFIG;
@@ -90,9 +90,7 @@
         }
         const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-        // --- All Components go here ---
-
-        // ICONS
+        // --- ICONS ---
         const LoginIcon = () => (
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
@@ -134,18 +132,18 @@
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
           </svg>
         );
-        const BuildingOfficeIcon = () => (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        const BuildingOfficeIcon = ({ className = "h-5 w-5 text-slate-400" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 4h5m-5 4h5m-5-4h.01M9 7h.01M13 7h.01M13 11h.01M13 15h.01" />
             </svg>
         );
-        const EmailIcon = () => (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        const EmailIcon = ({ className = "h-5 w-5 text-slate-400" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
         );
-        const LockClosedIcon = () => (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        const LockClosedIcon = ({ className = "h-5 w-5 text-slate-400" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
         );
@@ -212,994 +210,976 @@
         };
 
         // --- All other components ---
-        
-        const DashboardPreview = () => {
-            return (
-                <div className="max-w-md mx-auto bg-slate-900/80 border border-slate-700 rounded-2xl shadow-2xl shadow-black/50 flex flex-col h-[600px] backdrop-blur-sm p-6">
-                    <div className="flex items-center gap-4 mb-6">
-                         <div className="w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center border border-slate-600">
-                            <ChartIcon className="w-7 h-7 text-cyan-400" />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-white text-lg">Dashboard Intuitivo</h3>
-                            <p className="text-sm text-slate-400">Visão geral das suas finanças.</p>
-                        </div>
-                    </div>
-                    
-                    <div className="flex-1 border border-slate-700 rounded-lg p-4 flex flex-col justify-end gap-2 bg-slate-800/50">
-                        <div className="flex items-end justify-around h-full gap-2">
-                            <div className="w-full bg-red-500/50 rounded-t-sm" style={{ height: '40%' }}></div>
-                            <div className="w-full bg-green-500/50 rounded-t-sm" style={{ height: '70%' }}></div>
-                            <div className="w-full bg-red-500/50 rounded-t-sm" style={{ height: '30%' }}></div>
-                            <div className="w-full bg-green-500/50 rounded-t-sm" style={{ height: '85%' }}></div>
-                            <div className="w-full bg-red-500/50 rounded-t-sm" style={{ height: '55%' }}></div>
-                            <div className="w-full bg-green-500/50 rounded-t-sm" style={{ height: '60%' }}></div>
-                        </div>
-                         <div className="border-t border-slate-700 mt-2 flex justify-around text-xs text-slate-500 pt-1">
-                            <span>Jan</span><span>Fev</span><span>Mar</span><span>Abr</span><span>Mai</span><span>Jun</span>
-                        </div>
-                    </div>
 
-                    <div className="mt-6">
-                        <h4 className="font-semibold text-slate-300 mb-2">Lançamentos Recentes</h4>
-                        <div className="space-y-3">
-                            <div className="flex justify-between items-center bg-slate-800/60 p-3 rounded-lg">
-                                <p className="text-sm text-white">Pagamento Cliente Y</p>
-                                <p className="text-sm font-bold text-green-400">+ R$ 2.500,00</p>
-                            </div>
-                            <div className="flex justify-between items-center bg-slate-800/60 p-3 rounded-lg">
-                                <p className="text-sm text-white">Aluguel do Escritório</p>
-                                <p className="text-sm font-bold text-red-400">- R$ 800,00</p>
-                            </div>
-                             <div className="flex justify-between items-center bg-slate-800/60 p-3 rounded-lg opacity-70">
-                                <p className="text-sm text-white">Gasolina</p>
-                                <p className="text-sm font-bold text-red-400">- R$ 150,50</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        const LoginPage = ({ onBack }) => {
-            const [email, setEmail] = useState('');
-            const [password, setPassword] = useState('');
-            const [error, setError] = useState('');
-            const [loading, setLoading] = useState(false);
-
-            const handleLogin = async (e) => {
-                e.preventDefault();
-                setError('');
-                setLoading(true);
-                const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-                setLoading(false);
-                if (error) setError('E-mail ou senha inválidos.');
-                // No need for setView here. The auth listener will handle it.
-            };
-
-            return (
-                <div className="w-full max-w-md mx-auto">
-                    <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-8 text-center backdrop-blur-sm">
-                        <h2 className="text-2xl font-bold text-white mb-2">Acessar Área de Membros</h2>
-                        <p className="text-slate-400 mb-6">Insira seu e-mail e senha para continuar.</p>
-                        <form onSubmit={handleLogin} className="space-y-4">
-                            <div className="relative">
-                                <span className="absolute inset-y-0 left-0 flex items-center pl-3"><EmailIcon /></span>
-                                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" className="w-full bg-slate-700 rounded-lg py-3 pl-10 pr-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent"/>
-                            </div>
-                            <div className="relative">
-                                <span className="absolute inset-y-0 left-0 flex items-center pl-3"><LockClosedIcon /></span>
-                                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Sua senha" className="w-full bg-slate-700 rounded-lg py-3 pl-10 pr-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent"/>
-                            </div>
-                            {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
-                            <button type="submit" disabled={loading} className="w-full mt-4 bg-gradient-to-r from-green-500 to-cyan-500 hover:from-green-600 hover:to-cyan-600 text-white font-bold py-3 px-6 rounded-lg transition-all text-lg shadow-lg shadow-cyan-500/20 disabled:from-slate-600 disabled:to-slate-700">
-                                {loading ? 'Acessando...' : 'Acessar'}
-                            </button>
-                        </form>
-                        <div className="text-center mt-6">
-                            <button onClick={onBack} className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors">&larr; Voltar para o início</button>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        const RegisterPage = ({ onBack }) => {
-            const [companyName, setCompanyName] = useState('');
-            const [email, setEmail] = useState('');
-            const [phone, setPhone] = useState('');
-            const [password, setPassword] = useState('');
-            const [loading, setLoading] = useState(false);
-            const [error, setError] = useState('');
-            const [message, setMessage] = useState('');
-
-            const formatPhoneNumber = (value) => {
-                if (!value) return value;
-                const phoneNumber = value.replace(/[^\d]/g, '');
-                const phoneNumberLength = phoneNumber.length;
-                if (phoneNumberLength < 3) return `(${phoneNumber}`;
-                if (phoneNumberLength < 8) return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2)}`;
-                return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2, 7)}-${phoneNumber.slice(7, 11)}`;
-            };
-
-            const handleSubmit = async (e) => {
-                e.preventDefault();
-                if (!email || !password || !companyName) {
-                    setError('Todos os campos são obrigatórios.');
-                    return;
-                }
-                setError('');
-                setMessage('');
-                setLoading(true);
-                const { data, error } = await supabaseClient.auth.signUp({
-                    email, password, options: { data: { company_name: companyName, phone: phone } }
-                });
-                setLoading(false);
-                if (error) setError(error.message);
-                else if (data.user?.identities?.length === 0) setError("Usuário já existe. Tente fazer login.");
-                else if (data.user) {
-                    // The auth listener will handle redirecting to the members area
-                    if (data.user.aud !== 'authenticated') {
-                        setMessage('Conta criada! Por favor, verifique seu e-mail para confirmar sua conta.');
-                    }
-                }
-            };
-
-            return (
-                <main className="relative z-10 container mx-auto px-6 py-16 md:py-24 flex justify-center items-center min-h-[calc(100vh-150px)]">
-                    <div className="w-full max-w-lg mx-auto">
-                        <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-8 backdrop-blur-sm">
-                            <div className="text-center mb-8">
-                                <h2 className="text-3xl font-bold text-white">Crie sua Conta de Teste</h2>
-                                <p className="text-slate-400 mt-2">Comece a organizar suas finanças agora mesmo.</p>
-                            </div>
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                <div className="relative">
-                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3"><BuildingOfficeIcon /></span>
-                                    <input type="text" placeholder="Nome da Empresa" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="w-full bg-slate-700 rounded-lg py-3 pl-10 pr-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent"/>
-                                </div>
-                                <div className="relative">
-                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3"><EmailIcon /></span>
-                                    <input type="email" placeholder="Seu melhor e-mail" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-slate-700 rounded-lg py-3 pl-10 pr-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent"/>
-                                </div>
-                                <div className="relative">
-                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3"><WhatsAppIcon /></span>
-                                    <input type="tel" placeholder="Seu Telefone" value={phone} onChange={(e) => setPhone(formatPhoneNumber(e.target.value))} className="w-full bg-slate-700 rounded-lg py-3 pl-10 pr-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent"/>
-                                </div>
-                                <div className="relative">
-                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3"><LockClosedIcon /></span>
-                                    <input type="password" placeholder="Crie uma senha" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-slate-700 rounded-lg py-3 pl-10 pr-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent"/>
-                                </div>
-                                {error && <p className="text-red-400 text-sm text-center">{error}</p>}
-                                {message && <p className="text-green-400 text-sm text-center">{message}</p>}
-                                <button type="submit" disabled={loading || !!message} className="w-full mt-6 bg-gradient-to-r from-green-500 to-cyan-500 hover:from-green-600 hover:to-cyan-600 text-white font-bold py-3 px-6 rounded-lg transition-all text-lg shadow-lg shadow-cyan-500/20 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed">
-                                    {loading ? 'Criando conta...' : 'Criar Conta e Acessar'}
-                                </button>
-                            </form>
-                            <div className="text-center mt-6">
-                                <button onClick={onBack} className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors">&larr; Voltar para o início</button>
-                            </div>
-                        </div>
-                    </div>
-                </main>
-            );
-        };
-
-        const UpgradeModal = ({ message, onClose, userEmail }) => {
-            const handleUpgradeClick = () => {
-                const STRIPE_PAYMENT_LINK = APP_CONFIG.stripePaymentLink;
-                if (!STRIPE_PAYMENT_LINK || !STRIPE_PAYMENT_LINK.startsWith('https://buy.stripe.com/')) {
-                    alert('Link de Pagamento do Stripe não configurado.');
-                    return;
-                }
-                let finalUrl = STRIPE_PAYMENT_LINK;
-                if (userEmail) {
-                    const separator = finalUrl.includes('?') ? '&' : '?';
-                    finalUrl += `${separator}prefilled_email=${encodeURIComponent(userEmail)}`;
-                }
-                window.open(finalUrl, '_blank', 'noopener,noreferrer');
-            };
-
-            return (
-                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex justify-center items-center" onClick={onClose}>
-                    <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8 w-full max-w-md mx-4 text-center transform transition-all animate-in fade-in-0 zoom-in-95" onClick={e => e.stopPropagation()}>
-                        <div className="mx-auto mb-4 bg-cyan-500/10 border border-cyan-500/30 rounded-full h-16 w-16 flex items-center justify-center"><SparklesIcon /></div>
-                        <h2 className="text-2xl font-bold text-white mb-2">Funcionalidade Pro</h2>
-                        <p className="text-slate-300 mb-6">{message}</p>
-                        <div className="flex flex-col sm:flex-row justify-center gap-4">
-                            <button onClick={onClose} className="bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-6 rounded-lg transition-colors order-2 sm:order-1">Continuar Testando</button>
-                            <button onClick={handleUpgradeClick} className="bg-gradient-to-r from-green-500 to-cyan-500 hover:from-green-600 hover:to-cyan-600 text-white font-bold py-2 px-6 rounded-lg transition-all shadow-lg shadow-cyan-500/20 order-1 sm:order-2">Fazer Upgrade para o Pro</button>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-        
-        const NavItem = ({ icon, label, isActive, onClick }) => (
-            <li>
-                <button onClick={onClick} className={`flex items-center w-full gap-3 px-4 py-3 rounded-lg transition-colors text-base font-semibold ${ isActive ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-400 hover:bg-slate-700/50 hover:text-white' }`}>
-                    {icon}
-                    <span>{label}</span>
-                </button>
-            </li>
-        );
-
-        const Sidebar = ({ activeView, setActiveView, onLogout }) => {
-            return (
-                <aside className="w-64 flex-shrink-0 bg-slate-800/40 border border-slate-700 rounded-2xl p-4 backdrop-blur-sm flex flex-col justify-between self-start">
-                    <div>
-                        <nav><ul className="space-y-2">
-                            <NavItem icon={<ChartIcon />} label="Gráfico Anual" isActive={activeView === 'chart'} onClick={() => setActiveView('chart')} />
-                            <NavItem icon={<ClipboardListIcon />} label="Lançamentos" isActive={activeView === 'transactions'} onClick={() => setActiveView('transactions')} />
-                            <NavItem icon={<CalendarIcon />} label="Calendário" isActive={activeView === 'calendar'} onClick={() => setActiveView('calendar')} />
-                            <NavItem icon={<PdfIcon className="h-6 w-6" />} label="Exportar PDF" isActive={activeView === 'pdf_exporter'} onClick={() => setActiveView('pdf_exporter')} />
-                            <NavItem icon={<SettingsIcon />} label="Configurações" isActive={activeView === 'settings'} onClick={() => setActiveView('settings')} />
-                        </ul></nav>
-                    </div>
-                    <div>
-                        <button onClick={onLogout} className="flex items-center w-full gap-3 px-4 py-3 rounded-lg transition-colors text-base font-semibold text-red-400 hover:bg-red-500/10">
-                            <LogoutIcon /><span>Sair</span>
-                        </button>
-                    </div>
-                </aside>
-            );
-        };
-        
         const ChartView = ({ transactions }) => {
-             if (typeof Recharts === 'undefined') {
-                return (
-                    <div className="w-full">
-                        <h2 className="text-3xl font-bold text-white mb-6">Resumo Financeiro Anual</h2>
-                        <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm h-[500px] flex justify-center items-center">
-                            <p className="text-slate-400">Carregando gráfico...</p>
-                        </div>
-                    </div>
-                );
+            if (!window.Recharts) {
+                return <div className="text-center text-slate-400 p-8">Carregando gráfico...</div>;
             }
-
-            const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = Recharts;
-
-            const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-            const monthlyData = useMemo(() => {
-                const data = months.map(month => ({ name: month, Receita: 0, Despesa: 0 }));
-                transactions.forEach(tx => {
-                    const monthIndex = parseInt(tx.date.split('/')[1], 10) - 1;
-                    if (monthIndex >= 0 && monthIndex < 12) {
-                        if (tx.type === 'Receita') data[monthIndex].Receita += tx.amount;
-                        else data[monthIndex].Despesa += tx.amount;
+            
+            const { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar } = window.Recharts;
+            
+            const data = useMemo(() => {
+                const monthlyData = {};
+                transactions.forEach(t => {
+                    const month = new Date(t.date).toLocaleString('default', { month: 'short', year: 'numeric' });
+                    if (!monthlyData[month]) {
+                        monthlyData[month] = { name: month, Receita: 0, Despesa: 0 };
+                    }
+                    if (t.type === 'Receita') {
+                        monthlyData[month].Receita += t.amount;
+                    } else {
+                        monthlyData[month].Despesa += t.amount;
                     }
                 });
-                return data;
+                return Object.values(monthlyData).sort((a,b) => new Date(a.name) - new Date(b.name));
             }, [transactions]);
 
             const CustomTooltip = ({ active, payload, label }) => {
-                if (active && payload && payload.length) {
-                    return (
-                        <div className="bg-slate-800/80 border border-slate-600 backdrop-blur-sm p-3 rounded-lg shadow-lg">
-                            <p className="font-bold text-white mb-2">{`${label}`}</p>
-                            <p className="text-sm text-green-400">{`Receita: R$ ${payload[0].value.toFixed(2).replace('.', ',')}`}</p>
-                            <p className="text-sm text-red-400">{`Despesa: R$ ${payload[1].value.toFixed(2).replace('.', ',')}`}</p>
-                        </div>
-                    );
-                }
-                return null;
+              if (active && payload && payload.length) {
+                return (
+                  <div className="bg-slate-700/80 backdrop-blur-sm border border-slate-600 p-3 rounded-lg shadow-lg">
+                    <p className="font-bold text-white">{label}</p>
+                    <p className="text-green-400">{`Receita: ${payload[0].value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`}</p>
+                    <p className="text-red-400">{`Despesa: ${payload[1].value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`}</p>
+                  </div>
+                );
+              }
+              return null;
             };
 
             return (
-                <div className="w-full">
-                    <h2 className="text-3xl font-bold text-white mb-6">Resumo Financeiro Anual</h2>
-                    <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm h-[500px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={monthlyData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }} barGap={8}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                                <XAxis dataKey="name" stroke="#94a3b8" tick={{ fill: '#94a3b8' }} />
-                                <YAxis stroke="#94a3b8" tick={{ fill: '#94a3b8' }} tickFormatter={(value) => `R$${value/1000}k`} />
-                                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(148, 163, 184, 0.1)' }}/>
-                                <Legend wrapperStyle={{ color: '#e2e8f0' }} />
-                                <Bar dataKey="Receita" fill="#22c55e" radius={[4, 4, 0, 0]} />
-                                <Bar dataKey="Despesa" fill="#ef4444" radius={[4, 4, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
+                <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm h-[400px]">
+                    <h3 className="text-lg font-bold text-white mb-4">Resumo Anual</h3>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                            <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `R$${value/1000}k`} />
+                            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(100, 116, 139, 0.1)' }}/>
+                            <Legend wrapperStyle={{fontSize: "14px"}} />
+                            <Bar dataKey="Receita" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="Despesa" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+            );
+        };
+        
+        const PdfExporterView = ({ transactions, profile }) => {
+            const exportPDF = () => {
+                if (!window.jspdf || !window.jspdf.jsPDF) {
+                    alert("A biblioteca de exportação PDF ainda não está carregada. Tente novamente em alguns segundos.");
+                    return;
+                }
+                const { jsPDF } = window.jspdf;
+
+                if (typeof jsPDF.API.autoTable !== 'function') {
+                    alert("A extensão de tabelas para PDF (autoTable) não está carregada. Tente novamente.");
+                    return;
+                }
+                
+                const doc = new jsPDF();
+                const tableColumn = ["Data", "Descrição", "Categoria", "Tipo", "Valor"];
+                const tableRows = [];
+
+                transactions.forEach(t => {
+                    const transactionData = [
+                        new Date(t.date).toLocaleDateString('pt-BR'),
+                        t.description,
+                        t.category,
+                        t.type,
+                        t.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                    ];
+                    tableRows.push(transactionData);
+                });
+
+                doc.autoTable({
+                    head: [tableColumn],
+                    body: tableRows,
+                    startY: 20,
+                });
+                doc.text(`Relatório Financeiro - ${profile?.company_name || 'Empresa'}`, 14, 15);
+                doc.save(`relatorio_${new Date().toISOString().slice(0,10)}.pdf`);
+            };
+
+            return (
+                <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm">
+                    <h3 className="text-lg font-bold text-white mb-4">Exportar Relatório</h3>
+                    <button onClick={exportPDF} className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-lg shadow-cyan-500/20">
+                        <PdfIcon />
+                        Exportar para PDF
+                    </button>
                 </div>
             );
         };
 
-        const AddTransactionForm = ({ onTransactionAdded }) => {
-            const [amount, setAmount] = useState('');
-            const [day, setDay] = useState('');
-            const [description, setDescription] = useState('');
-            const [isLoading, setIsLoading] = useState(false);
-            const [error, setError] = useState(null);
-            const [isRevenue, setIsRevenue] = useState(false);
+        const TransactionsView = ({ transactions, onAddTransaction, onUpdateTransaction, onDeleteTransaction, isPro }) => {
+            const [editingTransaction, setEditingTransaction] = useState(null);
+            const fileInputRef = useRef(null);
 
-            const handleSubmit = async (e) => {
-                e.preventDefault();
-                if (!amount || !day || !description) {
-                    setError("Por favor, preencha todos os campos.");
+            const handleFileImport = (e) => {
+                if (!window.XLSX) {
+                    alert("A biblioteca de importação de planilhas não está carregada. Tente novamente em alguns segundos.");
+                    e.target.value = null; // Reset file input
                     return;
                 }
-                setError(null);
-                setIsLoading(true);
+                
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = event.target.result;
+                        const workbook = XLSX.read(data, { type: 'binary' });
+                        const sheetName = workbook.SheetNames[0];
+                        const sheet = workbook.Sheets[sheetName];
+                        const json = XLSX.utils.sheet_to_json(sheet);
+                        
+                        const newTransactions = json.map(row => ({
+                            date: new Date(row.Data).toISOString().slice(0,10),
+                            description: row.Descricao,
+                            amount: parseFloat(row.Valor),
+                            type: row.Tipo,
+                            category: row.Categoria || "Outros",
+                        }));
 
-                try {
-                    const transactionType = isRevenue ? 'Receita' : 'Despesa';
-                    const category = transactionType === 'Despesa' ? await getCategoryFromAI(description) : 'Renda';
-                    const now = new Date();
-                    const transactionDate = new Date(now.getFullYear(), now.getMonth(), parseInt(day));
+                        newTransactions.forEach(onAddTransaction);
 
-                    onTransactionAdded({
-                        date: transactionDate.toLocaleDateString('pt-BR', { year: 'numeric', month: '2-digit', day: '2-digit'}),
-                        description,
-                        amount: parseFloat(amount.replace(',', '.')),
-                        type: transactionType,
-                        category,
-                    });
-                    setAmount(''); setDay(''); setDescription(''); setIsRevenue(false);
-                } catch (err) {
-                    setError("Ocorreu um erro ao adicionar a transação.");
-                } finally {
-                    setIsLoading(false);
-                }
+                    } catch(error) {
+                        console.error("Erro ao importar planilha:", error);
+                        alert("Ocorreu um erro ao ler o arquivo. Verifique se o formato está correto (Data, Descricao, Valor, Tipo, Categoria).");
+                    }
+                };
+                reader.onerror = (error) => {
+                    console.error("Erro no leitor de arquivo:", error);
+                    alert("Não foi possível ler o arquivo.");
+                };
+                reader.readAsBinaryString(file);
+                e.target.value = null; // Reset file input to allow re-uploading the same file
             };
-            
+
             return (
                 <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm">
-                    <h3 className="text-xl font-bold text-white mb-1">Adicionar Transação</h3>
-                    <p className="text-slate-400 mb-4 text-sm">Adicione suas receitas e despesas.</p>
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-bold text-white">Últimos Lançamentos</h3>
+                        {isPro && (
+                            <>
+                                <input type="file" accept=".xlsx, .xls" ref={fileInputRef} onChange={handleFileImport} className="hidden" />
+                                <button onClick={() => fileInputRef.current.click()} className="flex items-center gap-2 text-sm bg-slate-700 hover:bg-slate-600 text-cyan-300 font-semibold py-1 px-3 rounded-md transition-colors">
+                                    <UploadIcon />
+                                    Importar Planilha
+                                </button>
+                            </>
+                        )}
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left text-slate-300">
+                             <thead className="text-xs text-slate-400 uppercase bg-slate-800/50">
+                                <tr>
+                                    <th scope="col" className="px-4 py-3">Data</th>
+                                    <th scope="col" className="px-4 py-3">Descrição</th>
+                                    <th scope="col" className="px-4 py-3">Categoria</th>
+                                    <th scope="col" className="px-4 py-3 text-right">Valor</th>
+                                    <th scope="col" className="px-4 py-3 text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {transactions.map(t => (
+                                    <tr key={t.id} className="border-b border-slate-700 hover:bg-slate-800/30">
+                                        <td className="px-4 py-3">{new Date(t.date).toLocaleDateString('pt-BR', {timeZone: 'UTC'})}</td>
+                                        <td className="px-4 py-3 font-medium text-white">{t.description}</td>
+                                        <td className="px-4 py-3"><span className="bg-slate-700 text-slate-300 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">{t.category}</span></td>
+                                        <td className={`px-4 py-3 text-right font-bold ${t.type === 'Receita' ? 'text-green-400' : 'text-red-400'}`}>
+                                            {t.type === 'Receita' ? '+' : '-'} {t.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                        </td>
+                                        <td className="px-4 py-3 text-center">
+                                          <div className="flex items-center justify-center gap-2">
+                                            <button onClick={() => setEditingTransaction(t)} className="p-1 text-slate-400 hover:text-cyan-400 transition-colors"><PencilIcon /></button>
+                                            <button onClick={() => onDeleteTransaction(t.id)} className="p-1 text-slate-400 hover:text-red-500 transition-colors"><TrashIcon /></button>
+                                          </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    {editingTransaction && (
+                        <EditTransactionModal
+                            transaction={editingTransaction}
+                            onClose={() => setEditingTransaction(null)}
+                            onSave={onUpdateTransaction}
+                        />
+                    )}
+                </div>
+            );
+        };
+
+        const AddTransactionForm = ({ onAddTransaction }) => {
+            const [description, setDescription] = useState('');
+            const [amount, setAmount] = useState('');
+            const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+            const [type, setType] = useState('Despesa');
+            const [isAiLoading, setIsAiLoading] = useState(false);
+
+            const handleDescriptionBlur = async () => {
+              if (description.length > 3 && type === 'Despesa') {
+                setIsAiLoading(true);
+                await getCategoryFromAI(description); // The result is not used here directly, just warming it up.
+                setIsAiLoading(false);
+              }
+            };
+            
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setIsAiLoading(true);
+                const category = type === 'Despesa' ? await getCategoryFromAI(description) : 'Renda';
+                onAddTransaction({ description, amount: parseFloat(amount), date, type, category });
+                setDescription('');
+                setAmount('');
+                setIsAiLoading(false);
+            };
+
+            return (
+                <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm">
+                    <h3 className="text-lg font-bold text-white mb-4">Adicionar Lançamento</h3>
                     <form onSubmit={handleSubmit} className="space-y-4">
-                         <div className="flex bg-slate-700/80 rounded-lg p-1 border border-slate-600">
-                            <button type="button" onClick={() => setIsRevenue(false)} className={`w-1/2 rounded-md py-1.5 text-sm font-semibold transition-colors ${!isRevenue ? 'bg-red-600/80 text-white' : 'text-slate-300 hover:bg-slate-600/50'}`}>Despesa</button>
-                            <button type="button" onClick={() => setIsRevenue(true)} className={`w-1/2 rounded-md py-1.5 text-sm font-semibold transition-colors ${isRevenue ? 'bg-green-600/80 text-white' : 'text-slate-300 hover:bg-slate-600/50'}`}>Receita</button>
-                        </div>
-                        <div className="flex gap-4">
-                            <div className="w-1/3">
-                                <label htmlFor="amount" className="block text-xs font-medium text-slate-400 mb-1">Valor</label>
-                                <input id="amount" type="text" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="150,50" className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent" />
-                            </div>
-                             <div className="w-1/3">
-                                <label htmlFor="day" className="block text-xs font-medium text-slate-400 mb-1">Dia</label>
-                                <input id="day" type="number" value={day} onChange={(e) => setDay(e.target.value)} placeholder="22" min="1" max="31" className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent" />
-                            </div>
-                             <div className="w-1/3">
-                                <label htmlFor="type" className="block text-xs font-medium text-slate-400 mb-1">Tipo</label>
-                                <div className="bg-slate-700 rounded-lg py-2 px-3 text-white font-semibold">{isRevenue ? 'Receita' : 'Despesa'}</div>
-                            </div>
+                        <div className="flex gap-2 mb-2">
+                            <button type="button" onClick={() => setType('Receita')} className={`w-full py-2 rounded-md transition-colors text-sm font-bold ${type === 'Receita' ? 'bg-green-500 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}>Receita</button>
+                            <button type="button" onClick={() => setType('Despesa')} className={`w-full py-2 rounded-md transition-colors text-sm font-bold ${type === 'Despesa' ? 'bg-red-500 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}>Despesa</button>
                         </div>
                         <div>
-                            <label htmlFor="description" className="block text-xs font-medium text-slate-400 mb-1">Descrição</label>
-                            <input id="description" type="text" value={description} onChange={(e) => setDescription(e.target.value)} placeholder={isRevenue ? 'Ex: Pagamento Cliente Y' : 'Ex: Jantar com amigos'} className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent" />
+                            <label htmlFor="description" className="text-sm font-medium text-slate-400 block mb-1">Descrição</label>
+                            <input type="text" id="description" value={description} onChange={e => setDescription(e.target.value)} onBlur={handleDescriptionBlur} placeholder="Ex: Almoço com cliente" className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent"/>
                         </div>
-                        {error && <p className="text-red-400 text-sm">{error}</p>}
-                        <button type="submit" disabled={isLoading} className="w-full mt-4 bg-gradient-to-r from-green-500 to-cyan-500 hover:from-green-600 hover:to-cyan-600 text-white font-bold py-3 px-4 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed">
-                            {isLoading ? ( <div className="typing-indicator flex gap-1 items-center"><span className="w-1.5 h-1.5 bg-white rounded-full inline-block animate-bounce [animation-delay:-0.3s]"></span><span className="w-1.5 h-1.5 bg-white rounded-full inline-block animate-bounce [animation-delay:-0.15s]"></span><span className="w-1.5 h-1.5 bg-white rounded-full inline-block animate-bounce"></span></div> ) : ( <><PlusIcon /> Adicionar</> )}
+                        <div className="flex gap-4">
+                            <div className="flex-1">
+                                <label htmlFor="amount" className="text-sm font-medium text-slate-400 block mb-1">Valor (R$)</label>
+                                <input type="number" step="0.01" id="amount" value={amount} onChange={e => setAmount(e.target.value)} placeholder="150.50" className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent"/>
+                            </div>
+                             <div className="flex-1">
+                                <label htmlFor="date" className="text-sm font-medium text-slate-400 block mb-1">Data</label>
+                                <input type="date" id="date" value={date} onChange={e => setDate(e.target.value)} className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent"/>
+                            </div>
+                        </div>
+                        <button type="submit" disabled={!description || !amount || isAiLoading} className="w-full flex items-center justify-center gap-2 mt-4 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold py-3 px-4 rounded-lg transition-all shadow-lg shadow-cyan-500/20 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed">
+                            {isAiLoading && <div className="w-5 h-5 border-2 border-dashed rounded-full animate-spin border-white"></div>}
+                            Adicionar
                         </button>
                     </form>
                 </div>
             );
         };
         
-        const EditTransactionModal = ({ transaction, onClose, onSave }) => {
-            const [formData, setFormData] = useState({ ...transaction });
-            const [isSaving, setIsSaving] = useState(false);
-
-            useEffect(() => setFormData({ ...transaction }), [transaction]);
-            
-            const handleChange = (e) => {
-                const { name, value } = e.target;
-                setFormData(prev => ({ ...prev, [name]: name === 'amount' ? parseFloat(value.replace(',', '.')) || 0 : value }));
-            };
-
-            const handleSubmit = (e) => {
-                e.preventDefault();
-                setIsSaving(true); onSave(formData); setIsSaving(false);
-            };
-
-            return (
-                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex justify-center items-center" onClick={onClose}>
-                    <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8 w-full max-w-lg mx-4" onClick={e => e.stopPropagation()}>
-                        <h2 className="text-2xl font-bold text-white mb-6">Editar Transação</h2>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label htmlFor="date" className="block text-sm font-medium text-slate-400 mb-1">Data</label>
-                                <input id="date" name="date" type="text" value={formData.date} onChange={handleChange} placeholder="DD/MM/AAAA" className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent" />
-                            </div>
-                            <div>
-                                <label htmlFor="description" className="block text-sm font-medium text-slate-400 mb-1">Descrição</label>
-                                <input id="description" name="description" type="text" value={formData.description} onChange={handleChange} className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent" />
-                            </div>
-                             <div className="flex gap-4">
-                                <div className="w-1/2">
-                                     <label htmlFor="amount" className="block text-sm font-medium text-slate-400 mb-1">Valor</label>
-                                    <input id="amount" name="amount" type="text" inputMode="decimal" value={String(formData.amount).replace('.', ',')} onChange={handleChange} className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent" />
-                                </div>
-                                <div className="w-1/2">
-                                    <label htmlFor="type" className="block text-sm font-medium text-slate-400 mb-1">Tipo</label>
-                                    <select id="type" name="type" value={formData.type} onChange={handleChange} className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent">
-                                        <option value="Despesa">Despesa</option><option value="Receita">Receita</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div>
-                                 <label htmlFor="category" className="block text-sm font-medium text-slate-400 mb-1">Categoria</label>
-                                <input id="category" name="category" type="text" value={formData.category} onChange={handleChange} className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent" />
-                            </div>
-                            <div className="flex justify-end gap-4 pt-4">
-                                <button type="button" onClick={onClose} className="bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg transition-colors">Cancelar</button>
-                                <button type="submit" disabled={isSaving} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:from-slate-600 disabled:to-slate-700">{isSaving ? 'Salvando...' : 'Salvar Alterações'}</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            );
-        };
-        
-        const TransactionsView = ({ transactions, onTransactionAdded, onTransactionRemoved, onTransactionEdited, onTransactionsImported, isProUser, openUpgradeModal }) => {
-            const [selectedMonth, setSelectedMonth] = useState('all');
-            const [selectedYear, setSelectedYear] = useState('all');
-            const [isImporting, setIsImporting] = useState(false);
-            const [importError, setImportError] = useState(null);
-            const [importSuccess, setImportSuccess] = useState(null);
-            const fileInputRef = useRef(null);
-            const [editingTransaction, setEditingTransaction] = useState(null);
-
-            const availableYears = useMemo(() => {
-                const years = new Set(transactions.map(tx => tx.date.split('/')[2]));
-                return ['all', ...Array.from(years).sort((a, b) => parseInt(b, 10) - parseInt(a, 10))];
-            }, [transactions]);
-
-            const filteredTransactions = useMemo(() => {
-                return transactions.filter(tx => {
-                    const [_, month, year] = tx.date.split('/');
-                    const monthMatch = selectedMonth === 'all' || parseInt(month, 10) === parseInt(selectedMonth, 10);
-                    const yearMatch = selectedYear === 'all' || year === selectedYear;
-                    return monthMatch && yearMatch;
-                });
-            }, [transactions, selectedMonth, selectedYear]);
-            
-            const handleImportClick = () => {
-                if (isProUser) fileInputRef.current?.click();
-                else openUpgradeModal('A importação de planilhas é uma funcionalidade exclusiva do plano Pro.');
-            };
-
-            const handleFileChange = async (e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                setIsImporting(true); setImportError(null); setImportSuccess(null);
-                try {
-                    const data = new Uint8Array(await file.arrayBuffer());
-                    const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const json = XLSX.utils.sheet_to_json(worksheet);
-                    if (json.length === 0) throw new Error("A planilha está vazia.");
-                    const firstRow = json[0];
-                    if (!('Data' in firstRow && 'Descrição' in firstRow && 'Valor' in firstRow && 'Tipo' in firstRow)) {
-                        throw new Error("A planilha deve conter as colunas: Data, Descrição, Valor, Tipo.");
-                    }
-                    const newTransactions = json.map((row) => {
-                        const type = String(row.Tipo).trim() === 'Receita' ? 'Receita' : 'Despesa';
-                        return {
-                            date: new Date(row.Data).toLocaleDateString('pt-BR', { year: 'numeric', month: '2-digit', day: '2-digit'}),
-                            description: String(row.Descrição),
-                            amount: parseFloat(row.Valor), type,
-                            category: type === 'Receita' ? 'Renda' : "Outros",
-                        };
-                    });
-                    onTransactionsImported(newTransactions);
-                    setImportSuccess(`${newTransactions.length} transações importadas com sucesso!`);
-                } catch (err) {
-                    setImportError(err instanceof Error ? err.message : "Erro ao processar a planilha.");
-                } finally {
-                    setIsImporting(false);
-                    if(e.target) e.target.value = '';
-                }
-            };
-
-            const summary = useMemo(() => {
-                let totalReceitas = 0, totalDespesas = 0;
-                filteredTransactions.forEach(tx => tx.type === 'Receita' ? totalReceitas += tx.amount : totalDespesas += tx.amount);
-                return { totalReceitas, totalDespesas, saldo: totalReceitas - totalDespesas };
-            }, [filteredTransactions]);
-
-            const SummaryCard = ({ title, value, colorClass }) => (
-                 <div className="bg-slate-800/50 p-6 rounded-lg border border-slate-700/50">
-                    <p className="text-sm text-slate-400 mb-1">{title}</p>
-                    <p className={`text-3xl font-bold ${colorClass}`}>R$ {value.toFixed(2).replace('.', ',')}</p>
-                </div>
-            );
-
-            const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-
-            return (
-                <div className="w-full">
-                    <h2 className="text-3xl font-bold text-white mb-6">Lançamentos</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <SummaryCard title="Total de Receitas" value={summary.totalReceitas} colorClass="text-green-400" />
-                        <SummaryCard title="Total de Despesas" value={summary.totalDespesas} colorClass="text-red-400" />
-                        <SummaryCard title="Saldo do Período" value={summary.saldo} colorClass={summary.saldo >= 0 ? 'text-cyan-400' : 'text-red-400'} />
-                    </div>
-                    <div className="mt-8 grid grid-cols-1 lg:grid-cols-5 gap-8">
-                        <div className="lg:col-span-2"><AddTransactionForm onTransactionAdded={onTransactionAdded} /></div>
-                        <div className="lg:col-span-3">
-                            <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm h-full flex flex-col">
-                                 <div className="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-4 md:gap-2">
-                                    <h3 className="text-xl font-bold text-white">Atividade Recente</h3>
-                                    <div className="flex gap-2">
-                                        <button onClick={handleImportClick} disabled={isImporting} className="bg-cyan-600/80 hover:bg-cyan-500 text-white font-bold py-1 px-3 rounded-lg text-sm flex items-center gap-2 transition-colors disabled:bg-slate-600 disabled:cursor-not-allowed">
-                                            <UploadIcon /> {isImporting ? 'Processando...' : 'Importar Planilha'}
-                                        </button>
-                                        <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".xlsx, .xls" className="hidden" />
-                                    </div>
-                                 </div>
-                                 {importError && <p className="text-red-400 text-sm mb-2">{importError}</p>}
-                                 {importSuccess && <p className="text-green-400 text-sm mb-2">{importSuccess}</p>}
-                                 <div className="flex gap-2 mb-4">
-                                    <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} className="bg-slate-700 rounded-lg py-1 px-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent w-full">
-                                        <option value="all">Todos os Meses</option>
-                                        {months.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
-                                    </select>
-                                    <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)} className="bg-slate-700 rounded-lg py-1 px-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent w-full">
-                                        {availableYears.map(y => <option key={y} value={y}>{y === 'all' ? 'Todos os Anos' : y}</option>)}
-                                    </select>
-                                </div>
-                                 <div className="space-y-3 flex-1 overflow-y-auto pr-2">
-                                    {filteredTransactions.length > 0 ? filteredTransactions.map(tx => (
-                                        <div key={tx.id} className="flex justify-between items-center bg-slate-800/50 p-4 rounded-lg border border-slate-700/50 hover:border-slate-600 transition-colors">
-                                            <div className="flex-1 overflow-hidden mr-2">
-                                                <p className="font-semibold text-white truncate">{tx.description}</p>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <p className="text-xs text-slate-400">{tx.date}</p><span className="text-slate-500">&bull;</span>
-                                                    <span className="text-xs bg-cyan-900/50 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-700/50">{tx.category}</span>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2 flex-shrink-0">
-                                                <p className={`font-bold text-lg ${tx.type === 'Receita' ? 'text-green-400' : 'text-red-400'}`}>{tx.type === 'Receita' ? '+' : '-'} R$ {tx.amount.toFixed(2).replace('.', ',')}</p>
-                                                <button onClick={() => setEditingTransaction(tx)} className="text-slate-500 hover:text-cyan-400 transition-colors p-2 rounded-full hover:bg-cyan-500/10" aria-label="Editar transação"><PencilIcon /></button>
-                                                <button onClick={() => onTransactionRemoved(tx.id)} className="text-slate-500 hover:text-red-400 transition-colors p-2 rounded-full hover:bg-red-500/10" aria-label="Remover transação"><TrashIcon /></button>
-                                            </div>
-                                        </div>
-                                    )) : ( <div className="text-center py-16"><p className="text-slate-400">Nenhuma transação encontrada.</p><p className="text-sm text-slate-500">Tente ajustar os filtros ou adicionar um novo lançamento.</p></div> )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {editingTransaction && <EditTransactionModal transaction={editingTransaction} onClose={() => setEditingTransaction(null)} onSave={(updated) => { onTransactionEdited(updated); setEditingTransaction(null); }} />}
-                </div>
-            );
-        };
-        
-        const CalendarView = ({ tasks, onAddTask, onUpdateTask, onRemoveTask }) => {
+        const CalendarView = ({ tasks, onAddTask, onUpdateTask, onDeleteTask }) => {
             const [currentDate, setCurrentDate] = useState(new Date());
+            const [newTaskDesc, setNewTaskDesc] = useState('');
             const [selectedDay, setSelectedDay] = useState(null);
-            const [newTaskDescription, setNewTaskDescription] = useState('');
 
-            const tasksByDate = useMemo(() => {
-                const map = new Map();
-                tasks.forEach(task => {
-                    const [day, month, year] = task.date.split('/');
-                    const dateKey = `${year}-${parseInt(month, 10)}-${parseInt(day, 10)}`;
-                    if (!map.has(dateKey)) map.set(dateKey, []);
-                    map.get(dateKey)?.push(task);
-                });
-                return map;
+            const daysInMonth = useMemo(() => {
+                const year = currentDate.getFullYear();
+                const month = currentDate.getMonth();
+                const date = new Date(year, month, 1);
+                const days = [];
+                while (date.getMonth() === month) {
+                    days.push(new Date(date));
+                    date.setDate(date.getDate() + 1);
+                }
+                return days;
+            }, [currentDate]);
+
+            const firstDayOfMonth = useMemo(() => daysInMonth[0].getDay(), [daysInMonth]);
+
+            const handleAddTask = () => {
+              if (newTaskDesc.trim() && selectedDay) {
+                  onAddTask({
+                      date: selectedDay,
+                      description: newTaskDesc.trim(),
+                      status: 'A Fazer'
+                  });
+                  setNewTaskDesc('');
+              }
+            };
+
+            const taskStatusOptions = ['A Fazer', 'Em Andamento', 'Finalizada'];
+            const statusColors = {
+                'A Fazer': 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
+                'Em Andamento': 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+                'Finalizada': 'bg-green-500/20 text-green-300 border-green-500/30',
+            };
+
+            const tasksByDay = useMemo(() => {
+                return tasks.reduce((acc, task) => {
+                    const day = task.date.split('T')[0];
+                    if (!acc[day]) acc[day] = [];
+                    acc[day].push(task);
+                    return acc;
+                }, {});
             }, [tasks]);
 
-            const changeMonth = (offset) => {
-                setSelectedDay(null);
-                setCurrentDate(prev => { const d = new Date(prev); d.setMonth(d.getMonth() + offset); return d; });
-            };
-            
-            const handleAddTask = (e) => {
-                e.preventDefault();
-                if (!newTaskDescription.trim() || !selectedDay) return;
-                const taskDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), selectedDay);
-                onAddTask({
-                    date: taskDate.toLocaleDateString('pt-BR', { year: 'numeric', month: '2-digit', day: '2-digit'}),
-                    description: newTaskDescription, status: 'A Fazer'
-                });
-                setNewTaskDescription('');
-            };
-
-            const selectedDayTasks = useMemo(() => {
-                if (!selectedDay) return [];
-                const dateKey = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${selectedDay}`;
-                const statusOrder = { 'Em Andamento': 1, 'A Fazer': 2, 'Finalizada': 3 };
-                return (tasksByDate.get(dateKey) || []).sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
-            }, [selectedDay, currentDate, tasksByDate]);
-
-            const renderCalendar = () => {
-                const year = currentDate.getFullYear(), month = currentDate.getMonth();
-                const firstDayOfMonth = new Date(year, month, 1).getDay();
-                const daysInMonth = new Date(year, month + 1, 0).getDate();
-                const calendarDays = [];
-                for (let i = 0; i < firstDayOfMonth; i++) calendarDays.push(<div key={`empty-${i}`} className="p-2"></div>);
-                for (let day = 1; day <= daysInMonth; day++) {
-                    const dateKey = `${year}-${month + 1}-${day}`;
-                    calendarDays.push(
-                        <button key={day} onClick={() => selectedDay === day ? setSelectedDay(null) : setSelectedDay(day)} className={`p-2 border rounded-md text-center transition-colors ${selectedDay === day ? 'bg-cyan-500/30 border-cyan-400' : 'border-slate-700/50 bg-slate-800/50 hover:bg-slate-700'} cursor-pointer`}>
-                            <span className="font-semibold text-white">{day}</span>
-                            {tasksByDate.has(dateKey) && <div className="flex justify-center mt-1.5"><span className={`w-2 h-2 ${selectedDay === day ? 'bg-white' : 'bg-cyan-400'} rounded-full`}></span></div>}
-                        </button>
-                    );
-                }
-                return calendarDays;
-            };
-
-            const getStatusColorClasses = (status) => {
-                switch (status) {
-                    case 'A Fazer': return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
-                    case 'Em Andamento': return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
-                    case 'Finalizada': return 'bg-green-500/20 text-green-300 border-green-500/30';
-                }
-            };
-            const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-            const monthsOfYear = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-
             return (
-                <div className="w-full">
-                    <h2 className="text-3xl font-bold text-white mb-6">Calendário de Tarefas</h2>
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                        <div className="lg:col-span-2 bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm">
-                            <div className="flex justify-between items-center mb-4">
-                                <button onClick={() => changeMonth(-1)} className="p-2 rounded-full hover:bg-slate-700 transition-colors">&larr;</button>
-                                <h3 className="text-xl font-bold text-white">{monthsOfYear[currentDate.getMonth()]} {currentDate.getFullYear()}</h3>
-                                <button onClick={() => changeMonth(1)} className="p-2 rounded-full hover:bg-slate-700 transition-colors">&rarr;</button>
-                            </div>
-                            <div className="grid grid-cols-7 gap-2">
-                                {daysOfWeek.map(day => <div key={day} className="text-center font-bold text-cyan-400 p-2">{day}</div>)}
-                                {renderCalendar()}
-                            </div>
-                            <div className="flex items-center gap-2 mt-6 text-sm text-slate-400"><span className="w-2.5 h-2.5 bg-cyan-400 rounded-full inline-block"></span><span>Dia com tarefas registradas</span></div>
-                        </div>
-                        <div className="lg:col-span-1">
-                            {selectedDay ? (
-                                <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm h-full">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-xl font-bold text-white">Tarefas de {selectedDay}/{currentDate.getMonth()+1}</h3>
-                                        <button onClick={() => setSelectedDay(null)} className="p-1.5 rounded-full hover:bg-slate-700 transition-colors"><CloseIcon /></button>
-                                    </div>
-                                     <form onSubmit={handleAddTask} className="flex gap-2 mb-4">
-                                        <input type="text" value={newTaskDescription} onChange={(e) => setNewTaskDescription(e.target.value)} placeholder="Adicionar nova tarefa..." className="flex-grow bg-slate-700 rounded-lg py-2 px-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent" />
-                                        <button type="submit" aria-label="Adicionar tarefa" className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold p-2 rounded-lg transition-colors flex-shrink-0 disabled:bg-slate-600" disabled={!newTaskDescription.trim()}><PlusIcon /></button>
-                                    </form>
-                                    <div className="space-y-3 overflow-y-auto max-h-[420px] pr-2">
-                                        {selectedDayTasks.length > 0 ? selectedDayTasks.map(task => (
-                                            <div key={task.id} className="bg-slate-800 p-3 rounded-lg border border-slate-700/70 flex items-center justify-between gap-2">
-                                                <p className={`font-semibold text-white text-sm flex-grow ${task.status === 'Finalizada' ? 'line-through text-slate-400' : ''}`}>{task.description}</p>
-                                                <div className="flex items-center gap-2 flex-shrink-0">
-                                                    <select value={task.status} onChange={(e) => onUpdateTask({ ...task, status: e.target.value })} className={`text-xs font-bold rounded-lg py-1 pl-2 pr-2 appearance-none focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-cyan-500 border-2 ${getStatusColorClasses(task.status)}`}>
-                                                        <option value="A Fazer">A Fazer</option><option value="Em Andamento">Em Andamento</option><option value="Finalizada">Finalizada</option>
-                                                    </select>
-                                                    <button onClick={() => onRemoveTask(task.id)} className="text-slate-500 hover:text-red-400 p-1.5 rounded-full hover:bg-red-500/10" aria-label="Remover tarefa"><TrashIcon className="w-4 h-4" /></button>
-                                                </div>
-                                            </div>
-                                        )) : <p className="text-slate-400 text-center py-8">Nenhuma tarefa para este dia.</p>}
+                <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm">
+                    <div className="flex justify-between items-center mb-4">
+                        <button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))}>&lt;</button>
+                        <h3 className="text-lg font-bold text-white">{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>
+                        <button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))}>&gt;</button>
+                    </div>
+                    <div className="grid grid-cols-7 gap-1 text-center text-xs text-slate-400 mb-2">
+                        {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => <div key={day}>{day}</div>)}
+                    </div>
+                    <div className="grid grid-cols-7 gap-1">
+                        {Array(firstDayOfMonth).fill(null).map((_, i) => <div key={`empty-${i}`}></div>)}
+                        {daysInMonth.map(day => {
+                            const dayString = day.toISOString().split('T')[0];
+                            const dayTasks = tasksByDay[dayString] || [];
+                            const isSelected = selectedDay === dayString;
+                            return (
+                                <div key={day.toString()} onClick={() => setSelectedDay(dayString)} className={`h-24 p-1 border rounded-md cursor-pointer transition-all ${isSelected ? 'bg-slate-700 border-cyan-500' : 'bg-slate-800/50 border-slate-700 hover:bg-slate-700/80'}`}>
+                                    <div className="font-bold text-sm text-center">{day.getDate()}</div>
+                                    <div className="text-xs space-y-1 mt-1">
+                                        {dayTasks.slice(0, 2).map(task => (
+                                           <div key={task.id} className={`truncate p-0.5 rounded-sm ${statusColors[task.status].split(' ')[0]}`}></div>
+                                        ))}
+                                        {dayTasks.length > 2 && <div className="text-center text-slate-500 text-[10px]">+ {dayTasks.length - 2}</div>}
                                     </div>
                                 </div>
-                            ) : (
-                                <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm h-full flex items-center justify-center min-h-[200px]"><p className="text-slate-400 text-center">Selecione um dia no calendário para ver ou adicionar tarefas.</p></div>
-                            )}
-                        </div>
+                            )
+                        })}
                     </div>
-                </div>
-            );
-        };
-        
-        const PdfExporterView = ({ userEmail, transactions, onTransactionEdited, isProUser, openUpgradeModal }) => {
-            const [editingTransaction, setEditingTransaction] = useState(null);
-
-            const generatePDF = () => {
-                const doc = new jspdf.jsPDF();
-                doc.setFontSize(20);
-                doc.text("Relatório Financeiro Mensal", 14, 22);
-                doc.setFontSize(12);
-                doc.text(`Usuário: ${userEmail}`, 14, 30);
-                doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 14, 36);
-
-                const tableColumn = ["Data", "Descrição", "Categoria", "Tipo", "Valor (R$)"];
-                const tableRows = [];
-                let totalReceitas = 0, totalDespesas = 0;
-                transactions.forEach(tx => {
-                    tableRows.push([tx.date, tx.description, tx.category, tx.type, tx.amount.toFixed(2).replace('.', ',')]);
-                    if (tx.type === 'Receita') totalReceitas += tx.amount; else totalDespesas += tx.amount;
-                });
-
-                jspdf.autoTable(doc, { head: [tableColumn], body: tableRows, startY: 50, theme: 'grid', headStyles: { fillColor: [38, 166, 154] } });
-                
-                const finalY = doc.lastAutoTable.finalY || 50;
-                const saldo = totalReceitas - totalDespesas;
-                doc.setFontSize(14);
-                doc.text("Resumo do Mês", 14, finalY + 15);
-                doc.setFontSize(12);
-                doc.text(`Total de Receitas: R$ ${totalReceitas.toFixed(2).replace('.', ',')}`, 14, finalY + 22);
-                doc.text(`Total de Despesas: R$ ${totalDespesas.toFixed(2).replace('.', ',')}`, 14, finalY + 28);
-                doc.setFont("helvetica", "bold");
-                doc.text(`Saldo Final: R$ ${saldo.toFixed(2).replace('.', ',')}`, 14, finalY + 34);
-                doc.save(`relatorio-financeiro.pdf`);
-            };
-
-            return (
-                <div className="w-full">
-                    <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-2xl font-bold text-white">Exportar Relatório PDF</h3>
-                             <button onClick={() => isProUser ? generatePDF() : openUpgradeModal('A exportação de PDF é exclusiva do plano Pro.')} className="bg-gradient-to-r from-green-500 to-cyan-500 hover:from-green-600 hover:to-cyan-600 text-white font-bold py-2 px-4 rounded-lg transition-all flex items-center gap-2 text-sm shadow-lg shadow-cyan-500/20"><PdfIcon className="h-5 w-5" />Gerar PDF</button>
-                        </div>
-                         <p className="text-slate-400 mb-6">Visualize suas transações e gere um relatório completo.</p>
-                        <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
-                            {transactions.length > 0 ? transactions.map(tx => (
-                                <div key={tx.id} className="flex justify-between items-center bg-slate-800/50 p-4 rounded-lg border border-slate-700/50">
-                                    <div>
-                                        <p className="font-semibold text-white">{tx.description}</p>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <p className="text-xs text-slate-400">{tx.date}</p><span className="text-slate-500">&bull;</span>
-                                            <span className="text-xs bg-cyan-900/50 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-700/50">{tx.category}</span>
+                    {selectedDay && (
+                        <div className="mt-4 pt-4 border-t border-slate-700">
+                            <h4 className="font-bold text-white mb-2">Tarefas para {new Date(selectedDay).toLocaleDateString('pt-BR', {timeZone: 'UTC'})}</h4>
+                             <div className="space-y-2 mb-4 max-h-48 overflow-y-auto pr-2">
+                                {(tasksByDay[selectedDay] || []).map(task => (
+                                    <div key={task.id} className={`flex items-center justify-between p-2 rounded-lg border ${statusColors[task.status]}`}>
+                                        <p className="text-sm">{task.description}</p>
+                                        <div className="flex items-center gap-2">
+                                            <select
+                                                value={task.status}
+                                                onChange={(e) => onUpdateTask({ ...task, status: e.target.value })}
+                                                className="bg-transparent text-xs p-1 rounded-md border-0 focus:ring-0 focus:outline-none"
+                                            >
+                                                {taskStatusOptions.map(opt => <option key={opt} value={opt} className="bg-slate-800">{opt}</option>)}
+                                            </select>
+                                             <button onClick={() => onDeleteTask(task.id)} className="text-slate-500 hover:text-red-400 transition-colors"><TrashIcon className="h-4 w-4"/></button>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2 flex-shrink-0">
-                                        <p className={`font-bold text-lg flex-shrink-0 ml-4 ${tx.type === 'Receita' ? 'text-green-400' : 'text-red-400'}`}>{tx.type === 'Receita' ? '+' : '-'} R$ {tx.amount.toFixed(2).replace('.', ',')}</p>
-                                        <button onClick={() => setEditingTransaction(tx)} className="text-slate-500 hover:text-cyan-400 transition-colors p-2 rounded-full hover:bg-cyan-500/10"><PencilIcon /></button>
-                                    </div>
-                                </div>
-                            )) : <p className="text-slate-400 text-center py-8">Nenhuma transação registrada.</p>}
+                                ))}
+                            </div>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={newTaskDesc}
+                                    onChange={(e) => setNewTaskDesc(e.target.value)}
+                                    placeholder="Adicionar nova tarefa..."
+                                    className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent"
+                                />
+                                <button onClick={handleAddTask} className="bg-cyan-500 text-white p-2 rounded-lg hover:bg-cyan-600"><PlusIcon/></button>
+                            </div>
                         </div>
-                    </div>
-                    {editingTransaction && <EditTransactionModal transaction={editingTransaction} onClose={() => setEditingTransaction(null)} onSave={(updated) => { onTransactionEdited(updated); setEditingTransaction(null); }}/>}
+                    )}
                 </div>
             );
         };
         
-        const SettingsView = ({ userEmail }) => {
-            const InfoField = ({ icon, label, value }) => (
-                <div>
-                    <label className="block text-sm font-medium text-slate-400">{label}</label>
-                    <div className="mt-1 relative">
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-3">{icon}</span>
-                        <div className="w-full bg-slate-700/80 rounded-lg py-3 pl-10 pr-4 text-white placeholder-slate-400 border border-slate-600">{value}</div>
-                    </div>
-                </div>
-            );
+        const EditTransactionModal = ({ transaction, onClose, onSave }) => {
+            const [edited, setEdited] = useState(transaction);
+
+            const handleSave = () => {
+                onSave(edited);
+                onClose();
+            };
+
+            const handleChange = (e) => {
+                const { name, value } = e.target;
+                setEdited(prev => ({ ...prev, [name]: name === 'amount' ? parseFloat(value) : value }));
+            };
+
             return (
-                <div className="w-full">
-                    <h2 className="text-3xl font-bold text-white mb-6">Configurações de Perfil</h2>
-                    <div className="max-w-2xl">
-                         <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-8 backdrop-blur-sm">
-                            <div className="space-y-6">
-                                <InfoField icon={<EmailIcon />} label="Seu E-mail" value={userEmail} />
-                                <InfoField icon={<BuildingOfficeIcon />} label="Nome da Empresa (Em breve)" value="Minha Empresa Fantástica" />
-                                <div>
-                                     <label className="block text-sm font-medium text-slate-400">Senha</label>
-                                     <button className="mt-2 w-full md:w-auto bg-transparent hover:bg-cyan-400/10 text-cyan-400 font-bold py-2 px-4 rounded-lg transition-all flex items-center gap-2 text-sm border border-cyan-400/50"><LockClosedIcon /> Alterar Senha (Em breve)</button>
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 animate-in fade-in-0">
+                    <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md mx-4 animate-in zoom-in-95">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-bold text-white">Editar Lançamento</h3>
+                            <button onClick={onClose} className="p-1 text-slate-400 hover:text-white"><CloseIcon /></button>
+                        </div>
+                        <div className="space-y-4">
+                            <div>
+                                <label htmlFor="edit_description" className="text-sm font-medium text-slate-400 block mb-1">Descrição</label>
+                                <input type="text" id="edit_description" name="description" value={edited.description} onChange={handleChange} className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white"/>
+                            </div>
+                            <div className="flex gap-4">
+                                <div className="flex-1">
+                                    <label htmlFor="edit_amount" className="text-sm font-medium text-slate-400 block mb-1">Valor (R$)</label>
+                                    <input type="number" step="0.01" id="edit_amount" name="amount" value={edited.amount} onChange={handleChange} className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white"/>
+                                </div>
+                                 <div className="flex-1">
+                                    <label htmlFor="edit_date" className="text-sm font-medium text-slate-400 block mb-1">Data</label>
+                                    <input type="date" id="edit_date" name="date" value={edited.date} onChange={handleChange} className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white"/>
                                 </div>
                             </div>
-                         </div>
+                             <div>
+                                <label htmlFor="edit_category" className="text-sm font-medium text-slate-400 block mb-1">Categoria</label>
+                                <input type="text" id="edit_category" name="category" value={edited.category} onChange={handleChange} className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white"/>
+                            </div>
+                        </div>
+                        <div className="mt-6 flex justify-end gap-3">
+                             <button onClick={onClose} className="bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg transition-colors">Cancelar</button>
+                             <button onClick={handleSave} className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Salvar Alterações</button>
+                        </div>
                     </div>
                 </div>
             );
         };
 
-        const MembersArea = ({ session, onLogout }) => {
-            const [activeView, setActiveView] = useState('chart');
-            const [transactions, setTransactions] = useState([]);
-            const [tasks, setTasks] = useState([]);
-            const [isProUser, setIsProUser] = useState(false);
-            const [loading, setLoading] = useState(true);
-            const [isUpgradeModalOpen, setUpgradeModalOpen] = useState(false);
-            const [upgradeModalMessage, setUpgradeModalMessage] = useState('');
-            const user = session.user;
+        const SettingsView = ({ profile, onUpdateProfile, onLogout }) => {
+            const [localProfile, setLocalProfile] = useState(profile);
 
             useEffect(() => {
-                const fetchData = async () => {
-                    if (!user) return; setLoading(true);
-                    const { data: profile } = await supabaseClient.from('profiles').select('is_pro').eq('id', user.id).single();
-                    if (profile) setIsProUser(profile.is_pro || false);
-                    const { data: txData } = await supabaseClient.from('transactions').select('*').eq('user_id', user.id).order('date', { ascending: false });
-                    setTransactions(txData || []);
-                    const { data: taskData } = await supabaseClient.from('tasks').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
-                    setTasks(taskData || []);
-                    setLoading(false);
-                };
+                setLocalProfile(profile);
+            }, [profile]);
+
+            const handleChange = (e) => {
+                setLocalProfile({ ...localProfile, [e.target.name]: e.target.value });
+            };
+
+            const handleSave = () => {
+                onUpdateProfile(localProfile);
+            };
+
+            return (
+                <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm space-y-6">
+                    <div>
+                        <h3 className="text-lg font-bold text-white">Configurações do Perfil</h3>
+                        <p className="text-sm text-slate-400">Atualize as informações da sua empresa.</p>
+                    </div>
+                    <div className="space-y-4">
+                        <div>
+                            <label htmlFor="company_name" className="text-sm font-medium text-slate-400 block mb-1">Nome da Empresa</label>
+                            <input type="text" id="company_name" name="company_name" value={localProfile?.company_name || ''} onChange={handleChange} className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white"/>
+                        </div>
+                        <div>
+                            <label htmlFor="phone" className="text-sm font-medium text-slate-400 block mb-1">Telefone</label>
+                            <input type="tel" id="phone" name="phone" value={localProfile?.phone || ''} onChange={handleChange} className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white"/>
+                        </div>
+                    </div>
+                     <div className="flex justify-between items-center pt-6 border-t border-slate-700">
+                        <button onClick={onLogout} className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 transition-colors font-semibold">
+                            <LogoutIcon />
+                            Sair da Conta
+                        </button>
+                        <button onClick={handleSave} className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">Salvar</button>
+                    </div>
+                </div>
+            );
+        };
+        
+        const UpgradeModal = ({ isPro, onUpgrade }) => {
+            if (isPro) return null;
+            return (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 animate-in fade-in-0">
+                    <div className="bg-slate-900 border border-cyan-500/50 rounded-2xl p-8 w-full max-w-md mx-4 animate-in zoom-in-95 text-center shadow-2xl shadow-cyan-900/50">
+                        <div className="flex justify-center mb-4">
+                            <SparklesIcon className="w-12 h-12 text-cyan-400"/>
+                        </div>
+                        <h3 className="text-2xl font-bold text-white">Desbloqueie o Plano PRO</h3>
+                        <p className="text-slate-400 mt-2 mb-6">Importe planilhas e tenha acesso a todos os recursos.</p>
+                        <a href={APP_CONFIG.stripePaymentLink} className="w-full block bg-gradient-to-r from-green-500 to-cyan-500 hover:from-green-600 hover:to-cyan-600 text-white font-bold py-3 px-6 rounded-lg transition-all text-lg shadow-lg shadow-cyan-500/20">
+                            Fazer Upgrade Agora
+                        </a>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Layout Components ---
+
+        const Sidebar = ({ view, setView }) => {
+            const navItems = [
+                { id: 'dashboard', label: 'Dashboard', icon: DashboardIcon },
+                { id: 'transactions', label: 'Lançamentos', icon: ClipboardListIcon },
+                { id: 'calendar', label: 'Calendário', icon: CalendarIcon },
+                { id: 'charts', label: 'Gráficos', icon: ChartIcon },
+                { id: 'export', label: 'Exportar', icon: PdfIcon },
+                { id: 'settings', label: 'Configurações', icon: SettingsIcon },
+            ];
+
+            return (
+                <aside className="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col items-center gap-4">
+                    <div className="p-3 bg-slate-800 rounded-full border border-slate-700 mb-4">
+                       <BotIcon className="w-8 h-8 text-cyan-400"/>
+                    </div>
+                    {navItems.map(item => (
+                        <button
+                            key={item.id}
+                            onClick={() => setView(item.id)}
+                            className={`p-3 rounded-xl transition-colors w-full ${view === item.id ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
+                            title={item.label}
+                        >
+                            <item.icon className="w-6 h-6 mx-auto" />
+                        </button>
+                    ))}
+                </aside>
+            );
+        };
+
+        const MembersArea = ({ user }) => {
+            const [view, setView] = useState('dashboard');
+            const [transactions, setTransactions] = useState([]);
+            const [tasks, setTasks] = useState([]);
+            const [profile, setProfile] = useState(null);
+            const [loading, setLoading] = useState(true);
+
+            const fetchData = useCallback(async () => {
+                if (!user) return;
+                setLoading(true);
+                const [transRes, tasksRes, profileRes] = await Promise.all([
+                    supabaseClient.from('transactions').select('*').order('date', { ascending: false }),
+                    supabaseClient.from('tasks').select('*').order('date', { ascending: false }),
+                    supabaseClient.from('profiles').select('*').single()
+                ]);
+
+                if (transRes.data) setTransactions(transRes.data);
+                if (tasksRes.data) setTasks(tasksRes.data);
+                if (profileRes.data) setProfile(profileRes.data);
+                
+                setLoading(false);
+            }, [user]);
+
+            useEffect(() => {
                 fetchData();
 
-                const profileSubscription = supabaseClient.channel(`public:profiles:id=eq.${user.id}`)
-                    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, (payload) => {
-                        if (payload.new.is_pro) setIsProUser(payload.new.is_pro);
-                        setUpgradeModalOpen(false);
-                    }).subscribe();
-                return () => supabaseClient.removeChannel(profileSubscription);
-            }, [user]);
+                const profileListener = supabaseClient.channel('public:profiles')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` }, payload => {
+                        setProfile(payload.new);
+                    })
+                    .subscribe();
+
+                return () => {
+                    supabaseClient.removeChannel(profileListener);
+                };
+            }, [user, fetchData]);
             
-            const openUpgradeModal = (message) => { setUpgradeModalMessage(message); setUpgradeModalOpen(true); };
-            
+            // CRUD Handlers
             const handleAddTransaction = async (newTransaction) => {
-                if (!isProUser) {
-                    const { count } = await supabaseClient.from('transactions').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('type', newTransaction.type);
-                    if ((count ?? 0) >= 5) { openUpgradeModal(`Você atingiu o limite de 5 ${newTransaction.type === 'Despesa' ? 'despesas' : 'receitas'} do plano de teste.`); return; }
-                }
-                const { data } = await supabaseClient.from('transactions').insert({ ...newTransaction, user_id: user.id }).select().single();
+                const { data, error } = await supabaseClient
+                    .from('transactions')
+                    .insert({ ...newTransaction, user_id: user.id })
+                    .select()
+                    .single();
                 if (data) setTransactions(prev => [data, ...prev]);
             };
-            
-            const handleRemoveTransaction = async (id) => {
+
+            const handleUpdateTransaction = async (updatedTransaction) => {
+                const { data, error } = await supabaseClient
+                    .from('transactions')
+                    .update(updatedTransaction)
+                    .eq('id', updatedTransaction.id)
+                    .select()
+                    .single();
+                if (data) setTransactions(prev => prev.map(t => t.id === data.id ? data : t));
+            };
+
+            const handleDeleteTransaction = async (id) => {
                 await supabaseClient.from('transactions').delete().eq('id', id);
-                setTransactions(prev => prev.filter(tx => tx.id !== id));
+                setTransactions(prev => prev.filter(t => t.id !== id));
             };
-            
-            const handleEditTransaction = async (updated) => {
-                const { data } = await supabaseClient.from('transactions').update(updated).eq('id', updated.id).select().single();
-                if (data) setTransactions(prev => prev.map(tx => tx.id === data.id ? data : tx));
-            };
-            
-            const handleImportTransactions = async (imported) => {
-                if (!isProUser) { openUpgradeModal('A importação é exclusiva do plano Pro.'); return; }
-                const withUser = imported.map(tx => ({ ...tx, user_id: user.id }));
-                const { data } = await supabaseClient.from('transactions').insert(withUser).select();
-                if (data) setTransactions(prev => [...data, ...prev]);
-};
             
             const handleAddTask = async (newTask) => {
-                const { data } = await supabaseClient.from('tasks').insert({ ...newTask, user_id: user.id }).select().single();
+                const { data, error } = await supabaseClient
+                    .from('tasks')
+                    .insert({ ...newTask, user_id: user.id })
+                    .select()
+                    .single();
                 if (data) setTasks(prev => [data, ...prev]);
             };
 
-            const handleUpdateTask = async (updated) => {
-                const { data } = await supabaseClient.from('tasks').update({ status: updated.status }).eq('id', updated.id).select().single();
-                if (data) setTasks(prev => prev.map(task => task.id === data.id ? data : task));
+            const handleUpdateTask = async (updatedTask) => {
+                const { data, error } = await supabaseClient
+                    .from('tasks')
+                    .update(updatedTask)
+                    .eq('id', updatedTask.id)
+                    .select()
+                    .single();
+                if (data) setTasks(prev => prev.map(t => t.id === data.id ? data : t));
             };
 
-            const handleRemoveTask = async (id) => {
+            const handleDeleteTask = async (id) => {
                 await supabaseClient.from('tasks').delete().eq('id', id);
-                setTasks(prev => prev.filter(task => task.id !== id));
+                setTasks(prev => prev.filter(t => t.id !== id));
             };
 
-            const renderActiveView = () => {
-                if (loading) return <div className="flex-1 flex justify-center items-center"><div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-cyan-400"></div></div>;
-                switch (activeView) {
-                    case 'chart': return <ChartView transactions={transactions} />;
-                    case 'transactions': return <TransactionsView transactions={transactions} onTransactionAdded={handleAddTransaction} onTransactionRemoved={handleRemoveTransaction} onTransactionEdited={handleEditTransaction} onTransactionsImported={handleImportTransactions} isProUser={isProUser} openUpgradeModal={openUpgradeModal} />;
-                    case 'calendar': return <CalendarView tasks={tasks} onAddTask={handleAddTask} onUpdateTask={handleUpdateTask} onRemoveTask={handleRemoveTask} />;
-                    case 'pdf_exporter': return <PdfExporterView userEmail={user.email || ''} transactions={transactions} onTransactionEdited={handleEditTransaction} isProUser={isProUser} openUpgradeModal={openUpgradeModal} />;
-                    case 'settings': return <SettingsView userEmail={user.email || ''} />;
-                    default: return <ChartView transactions={transactions} />;
-                }
-            }
+            const handleUpdateProfile = async (updatedProfile) => {
+                const { data, error } = await supabaseClient
+                    .from('profiles')
+                    .update(updatedProfile)
+                    .eq('id', user.id)
+                    .select()
+                    .single();
+                if (data) setProfile(data);
+            };
+
+            const handleLogout = () => {
+                supabaseClient.auth.signOut();
+            };
+
+            const summary = useMemo(() => {
+                return transactions.reduce((acc, t) => {
+                    if (t.type === 'Receita') acc.receitas += t.amount;
+                    else acc.despesas += t.amount;
+                    return acc;
+                }, { receitas: 0, despesas: 0, saldo: 0 });
+            }, [transactions]);
+            summary.saldo = summary.receitas - summary.despesas;
             
-            return (
-                <main className="relative z-10 container mx-auto px-6 py-8 md:py-12 flex justify-center items-start min-h-[calc(100vh-80px)] w-full">
-                    <div className="flex w-full max-w-7xl gap-8">
-                        <Sidebar activeView={activeView} setActiveView={setActiveView} onLogout={onLogout} />
-                        <div className="flex-1">{renderActiveView()}</div>
+            const isPro = profile?.is_pro || false;
+            
+            if (loading) {
+                return (
+                    <div className="min-h-screen bg-slate-950 flex justify-center items-center">
+                        <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-cyan-400"></div>
                     </div>
-                    {isUpgradeModalOpen && <UpgradeModal message={upgradeModalMessage} onClose={() => setUpgradeModalOpen(false)} userEmail={user.email} />}
-                </main>
+                );
+            }
+
+            return (
+                <div className="min-h-screen p-4 md:p-6 lg:p-8 flex gap-8">
+                    {!isPro && view !== 'settings' && <UpgradeModal isPro={isPro} />}
+                    <Sidebar view={view} setView={setView} />
+                    <main className="flex-1 space-y-8">
+                        {view === 'dashboard' && (
+                            <>
+                                <header>
+                                    <h1 className="text-3xl font-bold text-white">Olá, {profile?.company_name || 'Usuário'}!</h1>
+                                    <p className="text-slate-400">Bem-vindo(a) ao seu painel financeiro.</p>
+                                </header>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm">
+                                        <h4 className="text-sm font-semibold text-green-400">Total de Receitas</h4>
+                                        <p className="text-3xl font-bold text-white">{summary.receitas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                                    </div>
+                                     <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm">
+                                        <h4 className="text-sm font-semibold text-red-400">Total de Despesas</h4>
+                                        <p className="text-3xl font-bold text-white">{summary.despesas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                                    </div>
+                                     <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm">
+                                        <h4 className="text-sm font-semibold text-cyan-400">Saldo Atual</h4>
+                                        <p className="text-3xl font-bold text-white">{summary.saldo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                    <div className="lg:col-span-2">
+                                        <AddTransactionForm onAddTransaction={handleAddTransaction} />
+                                    </div>
+                                    <div className="lg:col-span-1">
+                                        <TransactionsView
+                                            transactions={transactions.slice(0, 5)}
+                                            onUpdateTransaction={handleUpdateTransaction}
+                                            onDeleteTransaction={handleDeleteTransaction}
+                                            isPro={isPro}
+                                        />
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                        {view === 'transactions' && <TransactionsView transactions={transactions} onAddTransaction={handleAddTransaction} onUpdateTransaction={handleUpdateTransaction} onDeleteTransaction={handleDeleteTransaction} isPro={isPro}/>}
+                        {view === 'calendar' && <CalendarView tasks={tasks} onAddTask={handleAddTask} onUpdateTask={handleUpdateTask} onDeleteTask={handleDeleteTask}/>}
+                        {view === 'charts' && <ChartView transactions={transactions} />}
+                        {view === 'export' && <PdfExporterView transactions={transactions} profile={profile}/>}
+                        {view === 'settings' && <SettingsView profile={profile} onUpdateProfile={handleUpdateProfile} onLogout={handleLogout}/>}
+
+                    </main>
+                </div>
             );
         };
         
-        // --- Main App Component ---
+        const DashboardPreview = () => {
+            const fakeTransactions = [
+                { type: 'Receita', desc: 'Projeto de Design', amount: 'R$ 3.500,00' },
+                { type: 'Despesa', desc: 'Assinatura de Software', amount: '- R$ 150,00' },
+                { type: 'Despesa', desc: 'Material de Escritório', amount: '- R$ 275,80' },
+                { type: 'Receita', desc: 'Consultoria', amount: 'R$ 1.200,00' },
+            ];
+            return (
+                <div className="bg-slate-900/70 border border-slate-700 rounded-2xl p-6 shadow-2xl shadow-cyan-900/30 backdrop-blur-sm">
+                    <div className="flex items-center gap-2 mb-6">
+                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4 mb-6">
+                        <div className="bg-slate-800 p-4 rounded-lg"><h4 className="text-sm text-green-400">Receitas</h4><p className="text-xl font-bold">R$ 4.700,00</p></div>
+                        <div className="bg-slate-800 p-4 rounded-lg"><h4 className="text-sm text-red-400">Despesas</h4><p className="text-xl font-bold">R$ 425,80</p></div>
+                        <div className="bg-slate-800 p-4 rounded-lg"><h4 className="text-sm text-cyan-400">Saldo</h4><p className="text-xl font-bold">R$ 4.274,20</p></div>
+                    </div>
+                    <div>
+                        <h3 className="font-semibold mb-2">Últimos Lançamentos</h3>
+                        <div className="space-y-2">
+                            {fakeTransactions.map((t, i) => (
+                                <div key={i} className="flex justify-between items-center bg-slate-800/50 p-3 rounded-md">
+                                    <span className="font-medium">{t.desc}</span>
+                                    <span className={`font-bold ${t.type === 'Receita' ? 'text-green-400' : 'text-red-400'}`}>{t.amount}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const LoginPage = ({ onBack, setView }) => {
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState('');
+
+            const handleLogin = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                setError('');
+                const { error } = await supabaseClient.auth.signInWithPassword({
+                    email,
+                    password,
+                });
+                if (error) {
+                    setError(error.message);
+                }
+                setLoading(false);
+            };
+
+            return (
+                 <div className="min-h-screen flex flex-col justify-center items-center p-4 animate-in fade-in-0">
+                     <div className="w-full max-w-md">
+                         <div className="text-center mb-8">
+                             <BotIcon className="w-12 h-12 mx-auto text-cyan-400 mb-2"/>
+                             <h1 className="text-3xl font-bold text-white">Bem-vindo de volta!</h1>
+                             <p className="text-slate-400">Acesse sua conta para continuar.</p>
+                         </div>
+                         <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-8 backdrop-blur-sm space-y-6">
+                             <form onSubmit={handleLogin}>
+                                <div>
+                                    <label className="text-sm font-medium text-slate-300 block mb-2" htmlFor="email">Email</label>
+                                    <div className="relative flex items-center">
+                                        <EmailIcon className="w-5 h-5 text-slate-400 absolute left-4"/> 
+                                        <input id="email" className="w-full bg-slate-700 rounded-lg py-3 pl-12 pr-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent" type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="seu@email.com" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-slate-300 block mb-2" htmlFor="password">Senha</label>
+                                    <div className="relative flex items-center">
+                                       <LockClosedIcon className="w-5 h-5 text-slate-400 absolute left-4"/>
+                                        <input id="password" className="w-full bg-slate-700 rounded-lg py-3 pl-12 pr-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent" type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" />
+                                    </div>
+                                </div>
+                                {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+                                <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 mt-4 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold py-3 px-4 rounded-lg transition-all shadow-lg shadow-cyan-500/20 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed">
+                                     {loading ? <div className="w-5 h-5 border-2 border-dashed rounded-full animate-spin border-white"></div> : 'Entrar'}
+                                </button>
+                            </form>
+                         </div>
+                         <p className="text-center text-sm text-slate-400 mt-6">
+                            Não tem uma conta?{' '}
+                            <button onClick={() => setView('register')} className="font-semibold text-cyan-400 hover:underline">Crie uma agora</button>
+                         </p>
+                     </div>
+                 </div>
+            );
+        };
+
+        const RegisterPage = ({ onBack, setView }) => {
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [companyName, setCompanyName] = useState('');
+            const [phone, setPhone] = useState('');
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState('');
+            const [message, setMessage] = useState('');
+
+            const handleRegister = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                setError('');
+                setMessage('');
+                const { data, error } = await supabaseClient.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            company_name: companyName,
+                            phone: phone,
+                        },
+                    },
+                });
+                if (error) {
+                    setError(error.message);
+                } else if (data.user && !data.session) {
+                    setMessage('Cadastro realizado! Por favor, verifique seu email para confirmar sua conta.');
+                }
+                 else if (data.user && data.session) {
+                    // Auto-login after confirmation in some cases
+                    setMessage('Cadastro realizado com sucesso! Você já está logado.');
+                }
+                setLoading(false);
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col justify-center items-center p-4 animate-in fade-in-0">
+                    <div className="w-full max-w-md">
+                        <div className="text-center mb-8">
+                            <BotIcon className="w-12 h-12 mx-auto text-cyan-400 mb-2"/>
+                            <h1 className="text-3xl font-bold text-white">Crie sua Conta Grátis</h1>
+                            <p className="text-slate-400">Comece a organizar suas finanças hoje mesmo.</p>
+                        </div>
+                        <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-8 backdrop-blur-sm space-y-4">
+                            <form onSubmit={handleRegister}>
+                               <div>
+                                    <label className="text-sm font-medium text-slate-300 block mb-2" htmlFor="companyName">Nome da Empresa</label>
+                                    <div className="relative flex items-center">
+                                       <BuildingOfficeIcon className="w-5 h-5 text-slate-400 absolute left-4"/>
+                                       <input id="companyName" className="w-full bg-slate-700 rounded-lg py-3 pl-12 pr-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500" type="text" value={companyName} onChange={e => setCompanyName(e.target.value)} required placeholder="Sua Empresa LTDA" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-slate-300 block mb-2" htmlFor="phone">WhatsApp</label>
+                                    <div className="relative flex items-center">
+                                       <WhatsAppIcon className="w-5 h-5 text-slate-400 absolute left-4"/>
+                                       <input id="phone" className="w-full bg-slate-700 rounded-lg py-3 pl-12 pr-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500" type="tel" value={phone} onChange={e => setPhone(e.target.value)} required placeholder="(XX) XXXXX-XXXX" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-slate-300 block mb-2" htmlFor="reg_email">Email</label>
+                                    <div className="relative flex items-center">
+                                       <EmailIcon className="w-5 h-5 text-slate-400 absolute left-4" />
+                                       <input id="reg_email" className="w-full bg-slate-700 rounded-lg py-3 pl-12 pr-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500" type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="seu@email.com" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-slate-300 block mb-2" htmlFor="reg_password">Senha</label>
+                                    <div className="relative flex items-center">
+                                       <LockClosedIcon className="w-5 h-5 text-slate-400 absolute left-4"/>
+                                       <input id="reg_password" className="w-full bg-slate-700 rounded-lg py-3 pl-12 pr-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500" type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="Mínimo 6 caracteres" />
+                                    </div>
+                                </div>
+                                {error && <p className="text-red-400 text-sm text-center pt-2">{error}</p>}
+                                {message && <p className="text-green-400 text-sm text-center pt-2">{message}</p>}
+                                <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 mt-4 bg-gradient-to-r from-green-500 to-cyan-500 hover:from-green-600 hover:to-cyan-600 text-white font-bold py-3 px-4 rounded-lg transition-all shadow-lg shadow-cyan-500/20 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed">
+                                    {loading ? <div className="w-5 h-5 border-2 border-dashed rounded-full animate-spin border-white"></div> : 'Criar Conta'}
+                                </button>
+                            </form>
+                        </div>
+                         <p className="text-center text-sm text-slate-400 mt-6">
+                            Já tem uma conta?{' '}
+                            <button onClick={() => setView('login')} className="font-semibold text-cyan-400 hover:underline">Faça o login</button>
+                         </p>
+                    </div>
+                </div>
+            );
+        };
+        
+        const LandingPage = ({ setView }) => {
+            const features = [
+              { title: "Controle Financeiro Descomplicado", description: "Registre suas receitas e despesas diretamente pelo WhatsApp, de forma rápida e intuitiva." },
+              { title: "Categorização com IA", description: "Nossa Inteligência Artificial analisa suas despesas e as categoriza automaticamente para você." },
+              { title: "Relatórios Inteligentes", description: "Visualize gráficos e relatórios que te ajudam a entender para onde seu dinheiro está indo." },
+              { title: "Foco no seu Negócio", description: "Gaste menos tempo com planilhas e mais tempo fazendo o que você ama: crescer sua empresa." },
+            ];
+          
+            return (
+              <>
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-slate-900 via-slate-950 to-black opacity-80 z-0"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                    <div className="w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
+                    <div className="w-80 h-80 bg-green-500/10 rounded-full blur-3xl animate-pulse -mt-48 ml-32"></div>
+                </div>
+
+                <main className="relative z-10 container mx-auto px-6">
+                    <header className="flex justify-between items-center py-6">
+                        <div className="flex items-center gap-3">
+                           <BotIcon />
+                           <span className="text-xl font-bold text-white">Assistente Financeiro IA</span>
+                        </div>
+                        <button onClick={() => setView('login')} className="flex items-center gap-2 bg-slate-800/50 hover:bg-slate-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors border border-slate-700">
+                           <LoginIcon />
+                           Login
+                        </button>
+                    </header>
+        
+                    <section className="text-center py-20 md:py-32">
+                        <h1 className="text-4xl md:text-6xl font-black text-white leading-tight mb-4">
+                            Organize as finanças do seu negócio <br />
+                            <span className="bg-gradient-to-r from-green-400 to-cyan-400 text-transparent bg-clip-text animated-gradient-text">pelo WhatsApp.</span>
+                        </h1>
+                        <p className="max-w-3xl mx-auto text-lg md:text-xl text-slate-300 mb-8">
+                            Chega de planilhas complicadas. Use nosso assistente com Inteligência Artificial para controlar suas finanças de forma simples e intuitiva.
+                        </p>
+                        <button onClick={() => setView('register')} className="bg-gradient-to-r from-green-500 to-cyan-500 hover:from-green-600 hover:to-cyan-600 text-white font-black text-xl py-4 px-10 rounded-full transition-all shadow-2xl shadow-cyan-500/30 transform hover:scale-105 animate-bounce">
+                           Começar Teste Grátis
+                        </button>
+                    </section>
+        
+                    <section className="py-16 grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                       <DashboardPreview />
+                        <div className="space-y-8">
+                           {features.map((feature, index) => (
+                               <div key={index} className="flex items-start gap-4">
+                                   <div className="mt-1"><CheckIcon /></div>
+                                   <div>
+                                       <h3 className="font-bold text-lg text-white">{feature.title}</h3>
+                                       <p className="text-slate-400">{feature.description}</p>
+                                   </div>
+                               </div>
+                           ))}
+                        </div>
+                    </section>
+                </main>
+              </>
+            );
+        };
+
+
+        // --- MAIN APP COMPONENT ---
         const App = () => {
-            const [view, setView] = useState('landing');
             const [session, setSession] = useState(null);
+            const [view, setView] = useState('landing'); // 'landing', 'login', 'register'
             const [loading, setLoading] = useState(true);
 
-            // This useEffect is the heart of the authentication logic.
-            // It runs only ONCE when the app first loads.
             useEffect(() => {
-                // 1. Check for an existing session.
+                const { data: { subscription } } = supabaseClient.auth.onAuthStateChange((_event, session) => {
+                    setSession(session);
+                    setLoading(false);
+                });
+
+                // Check initial session
                 supabaseClient.auth.getSession().then(({ data: { session } }) => {
                     setSession(session);
                     setLoading(false);
                 });
 
-                // 2. Listen for future authentication events (login, logout).
-                const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
-                    (_event, session) => {
-                        setSession(session);
-                        // If the user logs out, we reset the view to the landing page.
-                        if (!session) {
-                            setView('landing');
-                        }
-                    }
-                );
-
-                // 3. Cleanup the listener when the component unmounts.
                 return () => subscription.unsubscribe();
-            }, []); // The empty array [] ensures this runs only once.
+            }, []);
 
-            const handleLogout = async () => {
-                await supabaseClient.auth.signOut();
-                // The onAuthStateChange listener will handle setting the session to null
-                // and resetting the view.
-            };
-
-            const LandingPage = () => (
-                <>
-                    <main className="relative z-10 container mx-auto px-6 py-16 md:py-24">
-                        <section className="grid lg:grid-cols-2 gap-12 items-center min-h-[70vh]">
-                            <div className="text-center lg:text-left">
-                                <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-white leading-tight mb-4 animated-gradient-text bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-cyan-400">Seu Assistente Financeiro com Inteligência Artificial</h2>
-                                <p className="text-lg md:text-xl text-slate-300 mb-8">Sua nova plataforma de gestão financeira. Controle total das suas finanças, sem planilhas e sem dor de cabeça.</p>
-                                <button onClick={() => setView('register')} className="inline-block bg-gradient-to-r from-green-500 to-cyan-500 hover:from-green-600 hover:to-cyan-600 text-white font-bold py-4 px-8 rounded-lg transition-all text-lg shadow-xl shadow-cyan-500/20">Teste Grátis</button>
-                            </div>
-                            <div><DashboardPreview /></div>
-                        </section>
-                        <section id="features" className="mt-20 md:mt-32">
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                                {[
-                                    { icon: <ChartIcon />, title: "Controle Diário Simplificado", description: "Acompanhe suas receitas e despesas com lançamentos simples, a qualquer hora." },
-                                    { icon: <DashboardIcon className="w-8 h-8 text-cyan-400" />, title: "Dashboard Intuitivo", description: "Visualize suas receitas, despesas e saldo em uma interface clara e moderna." },
-                                    { icon: <BotIcon className="w-8 h-8 text-cyan-400" />, title: "Inteligência Artificial Avançada", description: "Nossa IA entende seus textos e registra tudo automaticamente no seu histórico." },
-                                    { icon: <PdfIcon className="h-8 w-8 text-green-400" />, title: "Relatórios Inteligentes", description: "Receba um resumo em PDF completo e profissional para download no final do mês." }
-                                ].map((feature, index) => (
-                                    <div key={index} className="bg-slate-800/40 p-6 rounded-xl border border-slate-700/80 flex flex-col items-start gap-4 transition-all hover:border-cyan-400/50 hover:bg-slate-800/80 backdrop-blur-sm">
-                                        <div className="bg-slate-900/70 p-3 rounded-lg border border-slate-700">{feature.icon}</div>
-                                        <h4 className="text-xl font-bold text-white">{feature.title}</h4>
-                                        <p className="text-slate-400 text-sm">{feature.description}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-                        <section id="pricing" className="mt-20 md:mt-32 max-w-2xl mx-auto">
-                            <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-8 text-center backdrop-blur-sm">
-                                <h3 className="text-2xl font-bold text-white mb-2">Acesso Total à Plataforma IA</h3>
-                                <p className="text-5xl font-extrabold text-white mb-4">R$ 29<span className="text-3xl font-bold">,90</span><span className="text-lg font-medium text-slate-400">/mês</span></p>
-                                <ul className="space-y-3 text-slate-300 my-8 text-left max-w-sm mx-auto">
-                                    <li className="flex items-center gap-3"><CheckIcon /> Controle diário de receitas e despesas</li>
-                                    <li className="flex items-center gap-3"><CheckIcon /> Dashboard completo e intuitivo</li>
-                                    <li className="flex items-center gap-3"><CheckIcon /> Inteligência Artificial para análise</li>
-                                    <li className="flex items-center gap-3"><CheckIcon /> Relatório em PDF no fim do mês</li>
-                                    <li className="flex items-center gap-3"><CheckIcon /> Suporte prioritário</li>
-                                </ul>
-                                <button onClick={() => setView('register')} className="w-full bg-gradient-to-r from-green-500 to-cyan-500 hover:from-green-600 hover:to-cyan-600 text-white font-bold py-3 px-6 rounded-lg transition-all text-lg shadow-lg shadow-cyan-500/20">Teste Grátis</button>
-                                <p className="text-xs text-slate-500 mt-4">Cancele quando quiser. Sem burocracia.</p>
-                            </div>
-                        </section>
-                    </main>
-                    <footer className="relative z-10 text-center py-8 mt-16 border-t border-slate-800"><p className="text-slate-500">&copy; {new Date().getFullYear()} AIFinance. Todos os direitos reservados.</p></footer>
-                </>
-            );
-
-            const renderContent = () => {
-                if (loading) {
-                    return <div className="min-h-screen flex justify-center items-center"><div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-cyan-400"></div></div>;
-                }
-
-                if (session) {
-                    return <MembersArea session={session} onLogout={handleLogout} />;
-                }
-                
-                switch (view) {
-                    case 'login':
-                        return <LoginPage onBack={() => setView('landing')} />;
-                    case 'register':
-                        return <RegisterPage onBack={() => setView('landing')} />;
-                    case 'landing':
-                    default:
-                        return <LandingPage />;
-                }
-            };
-
-            return (
-                <div className="min-h-screen bg-slate-950 text-slate-200 overflow-x-hidden">
-                    <div className="absolute top-0 left-0 w-full h-full bg-[url('https://images.pexels.com/photos/8386440/pexels-photo-8386440.jpeg')] bg-cover bg-center opacity-10 z-0"></div>
-                    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-slate-950/30 via-slate-950/80 to-slate-950 z-0"></div>
-                    <header className="sticky top-0 z-20 py-4 px-6 md:px-12 flex justify-between items-center bg-slate-900/50 backdrop-blur-lg border-b border-slate-700/50">
-                        <h1 className="text-xl font-bold text-white tracking-tight cursor-pointer" onClick={() => setView('landing')}><span className="text-cyan-400">AI</span>Finance</h1>
-                        <div className="flex items-center gap-4">
-                            {!session && view === 'landing' && (
-                                 <button onClick={() => setView('login')} className="bg-transparent hover:bg-cyan-400/10 text-cyan-400 font-bold py-2 px-4 rounded-lg transition-all flex items-center gap-2 text-sm md:text-base border border-cyan-400/50">
-                                    <LoginIcon />Login
-                                </button>
-                            )}
-                        </div>
-                    </header>
-                    <div className="relative z-10">{renderContent()}</div>
-                </div>
-            );
+            if (loading) {
+                 return (
+                    <div className="min-h-screen bg-slate-950 flex justify-center items-center">
+                        <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-cyan-400"></div>
+                    </div>
+                );
+            }
+            
+            if (session) {
+                return <MembersArea user={session.user} />;
+            }
+            
+            switch (view) {
+                case 'login':
+                    return <LoginPage setView={setView} />;
+                case 'register':
+                    return <RegisterPage setView={setView} />;
+                default:
+                    return <LandingPage setView={setView} />;
+            }
         };
 
-        // --- Mount the App ---
-        const rootElement = document.getElementById('root');
-        const root = ReactDOM.createRoot(rootElement);
+        // Mount the app to the root div
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
         root.render(<App />);
     </script>
 <script type="module" src="/index.tsx"></script>
