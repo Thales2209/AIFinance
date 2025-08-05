@@ -93,7 +93,7 @@
         // --- ICONS ---
         const LoginIcon = () => (
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3 3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
             </svg>
         );
         const LogoutIcon = () => (
@@ -741,6 +741,7 @@
             const [loading, setLoading] = useState(true);
             const [showUpgradeModal, setShowUpgradeModal] = useState(false);
             const [upgradeMessage, setUpgradeMessage] = useState('');
+            const [isCheckingPayment, setIsCheckingPayment] = useState(false);
 
             const isPro = useMemo(() => profile?.is_pro || false, [profile]);
 
@@ -750,7 +751,7 @@
                     setShowUpgradeModal(true);
                 }
             };
-
+            
             const fetchData = useCallback(async () => {
                 if (!user) return;
                 setLoading(true);
@@ -766,20 +767,54 @@
                 
                 setLoading(false);
             }, [user]);
+            
+            const refreshProfile = useCallback(async () => {
+                 if (!user) return false;
+                 const { data } = await supabaseClient.from('profiles').select('is_pro').single();
+                 if (data) {
+                    setProfile(prev => ({ ...prev, is_pro: data.is_pro }));
+                 }
+                 return data?.is_pro || false;
+            }, [user]);
 
             useEffect(() => {
+                let paymentCheckInterval;
+
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('payment_status') === 'success') {
+                    setIsCheckingPayment(true);
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    
+                    let attempts = 0;
+                    paymentCheckInterval = setInterval(async () => {
+                        attempts++;
+                        const userIsPro = await refreshProfile();
+                        if (userIsPro || attempts >= 5) {
+                            clearInterval(paymentCheckInterval);
+                            setIsCheckingPayment(false);
+                        }
+                    }, 2000); // Check every 2 seconds
+                }
+                
                 fetchData();
 
                 const profileListener = supabaseClient.channel('public:profiles')
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` }, payload => {
                         setProfile(payload.new);
+                        if (payload.new?.is_pro) {
+                            setIsCheckingPayment(false);
+                            if (paymentCheckInterval) clearInterval(paymentCheckInterval);
+                        }
                     })
                     .subscribe();
 
                 return () => {
                     supabaseClient.removeChannel(profileListener);
+                    if (paymentCheckInterval) {
+                        clearInterval(paymentCheckInterval);
+                    }
                 };
-            }, [user, fetchData]);
+            }, [user, fetchData, refreshProfile]);
             
             // CRUD Handlers
             const handleAddTransaction = async (newTransaction) => {
@@ -877,6 +912,16 @@
                         <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-cyan-400"></div>
                     </div>
                 );
+            }
+            
+            if (isCheckingPayment && !isPro) {
+              return (
+                  <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center text-center p-4">
+                      <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-cyan-400 mb-6"></div>
+                      <h2 className="text-2xl font-bold text-white mb-2">Verificando seu pagamento...</h2>
+                      <p className="text-slate-400 max-w-md">Estamos confirmando sua assinatura PRO. Isso pode levar alguns segundos. A página será atualizada automaticamente.</p>
+                  </div>
+              );
             }
 
             return (
