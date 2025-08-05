@@ -147,9 +147,9 @@
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
         );
-        const WhatsAppIcon = ({ className = "w-5 h-5 text-slate-400" }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="currentColor" viewBox="0 0 24 24">
-                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.894 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.886-.001 2.269.655 4.356 1.905 6.084l-1.214 4.425 4.569-1.189z" />
+        const PhoneIcon = ({ className = "h-5 w-5 text-slate-400" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
             </svg>
         );
         const CalendarIcon = () => (
@@ -265,8 +265,13 @@
             );
         };
         
-        const PdfExporterView = ({ transactions, profile }) => {
+        const PdfExporterView = ({ transactions, profile, isPro, onUpgradeRequest }) => {
             const exportPDF = () => {
+                if (!isPro) {
+                    onUpgradeRequest("Exporte relatórios em PDF com o plano PRO.");
+                    return;
+                }
+
                 if (!window.jspdf || !window.jspdf.jsPDF) {
                     alert("A biblioteca de exportação PDF ainda não está carregada. Tente novamente em alguns segundos.");
                     return;
@@ -313,10 +318,18 @@
             );
         };
 
-        const TransactionsView = ({ transactions, onAddTransaction, onUpdateTransaction, onDeleteTransaction, isPro }) => {
+        const TransactionsView = ({ transactions, onAddTransaction, onUpdateTransaction, onDeleteTransaction, isPro, onUpgradeRequest }) => {
             const [editingTransaction, setEditingTransaction] = useState(null);
             const fileInputRef = useRef(null);
 
+            const handleImportClick = () => {
+                if (!isPro) {
+                    onUpgradeRequest("Importe planilhas com o plano PRO para agilizar seus lançamentos.");
+                    return;
+                }
+                fileInputRef.current.click();
+            };
+            
             const handleFileImport = (e) => {
                 if (!window.XLSX) {
                     alert("A biblioteca de importação de planilhas não está carregada. Tente novamente em alguns segundos.");
@@ -361,15 +374,13 @@
                 <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-bold text-white">Últimos Lançamentos</h3>
-                        {isPro && (
-                            <>
-                                <input type="file" accept=".xlsx, .xls" ref={fileInputRef} onChange={handleFileImport} className="hidden" />
-                                <button onClick={() => fileInputRef.current.click()} className="flex items-center gap-2 text-sm bg-slate-700 hover:bg-slate-600 text-cyan-300 font-semibold py-1 px-3 rounded-md transition-colors">
-                                    <UploadIcon />
-                                    Importar Planilha
-                                </button>
-                            </>
-                        )}
+                        <div>
+                            <input type="file" accept=".xlsx, .xls" ref={fileInputRef} onChange={handleFileImport} className="hidden" />
+                            <button onClick={handleImportClick} className="flex items-center gap-2 text-sm bg-slate-700 hover:bg-slate-600 text-cyan-300 font-semibold py-1 px-3 rounded-md transition-colors">
+                                <UploadIcon />
+                                Importar Planilha
+                            </button>
+                        </div>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left text-slate-300">
@@ -671,16 +682,18 @@
             );
         };
         
-        const UpgradeModal = ({ isPro, onUpgrade }) => {
-            if (isPro) return null;
+        const UpgradeModal = ({ onClose, message }) => {
             return (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 animate-in fade-in-0">
-                    <div className="bg-slate-900 border border-cyan-500/50 rounded-2xl p-8 w-full max-w-md mx-4 animate-in zoom-in-95 text-center shadow-2xl shadow-cyan-900/50">
+                    <div className="relative bg-slate-900 border border-cyan-500/50 rounded-2xl p-8 w-full max-w-md mx-4 animate-in zoom-in-95 text-center shadow-2xl shadow-cyan-900/50">
+                         <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
+                            <CloseIcon />
+                        </button>
                         <div className="flex justify-center mb-4">
                             <SparklesIcon className="w-12 h-12 text-cyan-400"/>
                         </div>
                         <h3 className="text-2xl font-bold text-white">Desbloqueie o Plano PRO</h3>
-                        <p className="text-slate-400 mt-2 mb-6">Importe planilhas e tenha acesso a todos os recursos.</p>
+                        <p className="text-slate-400 mt-2 mb-6">{message || 'Tenha acesso a todos os recursos com o plano PRO.'}</p>
                         <a href={APP_CONFIG.stripePaymentLink} className="w-full block bg-gradient-to-r from-green-500 to-cyan-500 hover:from-green-600 hover:to-cyan-600 text-white font-bold py-3 px-6 rounded-lg transition-all text-lg shadow-lg shadow-cyan-500/20">
                             Fazer Upgrade Agora
                         </a>
@@ -726,6 +739,17 @@
             const [tasks, setTasks] = useState([]);
             const [profile, setProfile] = useState(null);
             const [loading, setLoading] = useState(true);
+            const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+            const [upgradeMessage, setUpgradeMessage] = useState('');
+
+            const isPro = useMemo(() => profile?.is_pro || false, [profile]);
+
+            const triggerUpgrade = (message) => {
+                if (!isPro) {
+                    setUpgradeMessage(message);
+                    setShowUpgradeModal(true);
+                }
+            };
 
             const fetchData = useCallback(async () => {
                 if (!user) return;
@@ -759,6 +783,20 @@
             
             // CRUD Handlers
             const handleAddTransaction = async (newTransaction) => {
+                if (!isPro) {
+                    const expenseCount = transactions.filter(t => t.type === 'Despesa').length;
+                    const revenueCount = transactions.filter(t => t.type === 'Receita').length;
+
+                    if (newTransaction.type === 'Despesa' && expenseCount >= 5) {
+                        triggerUpgrade('Você atingiu o limite de 5 despesas do plano gratuito. Faça o upgrade para lançamentos ilimitados!');
+                        return;
+                    }
+                    if (newTransaction.type === 'Receita' && revenueCount >= 3) {
+                        triggerUpgrade('Você atingiu o limite de 3 receitas do plano gratuito. Faça o upgrade para lançamentos ilimitados!');
+                        return;
+                    }
+                }
+
                 const { data, error } = await supabaseClient
                     .from('transactions')
                     .insert({ ...newTransaction, user_id: user.id })
@@ -783,6 +821,10 @@
             };
             
             const handleAddTask = async (newTask) => {
+                 if (!isPro && tasks.length >= 2) {
+                    triggerUpgrade('Você atingiu o limite de 2 tarefas do plano gratuito. Faça o upgrade para criar tarefas ilimitadas!');
+                    return;
+                }
                 const { data, error } = await supabaseClient
                     .from('tasks')
                     .insert({ ...newTask, user_id: user.id })
@@ -829,8 +871,6 @@
             }, [transactions]);
             summary.saldo = summary.receitas - summary.despesas;
             
-            const isPro = profile?.is_pro || false;
-            
             if (loading) {
                 return (
                     <div className="min-h-screen bg-slate-950 flex justify-center items-center">
@@ -841,13 +881,13 @@
 
             return (
                 <div className="min-h-screen p-4 md:p-6 lg:p-8 flex gap-8">
-                    {!isPro && view !== 'settings' && <UpgradeModal isPro={isPro} />}
+                    {showUpgradeModal && <UpgradeModal onClose={() => setShowUpgradeModal(false)} message={upgradeMessage} />}
                     <Sidebar view={view} setView={setView} />
                     <main className="flex-1 space-y-8">
                         {view === 'dashboard' && (
                             <>
                                 <header>
-                                    <h1 className="text-3xl font-bold text-white">Olá, {profile?.company_name || 'Usuário'}!</h1>
+                                    <h1 className="text-3xl font-bold text-white">Olá, {profile?.company_name}!</h1>
                                     <p className="text-slate-400">Bem-vindo(a) ao seu painel financeiro.</p>
                                 </header>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -874,15 +914,16 @@
                                             onUpdateTransaction={handleUpdateTransaction}
                                             onDeleteTransaction={handleDeleteTransaction}
                                             isPro={isPro}
+                                            onUpgradeRequest={triggerUpgrade}
                                         />
                                     </div>
                                 </div>
                             </>
                         )}
-                        {view === 'transactions' && <TransactionsView transactions={transactions} onAddTransaction={handleAddTransaction} onUpdateTransaction={handleUpdateTransaction} onDeleteTransaction={handleDeleteTransaction} isPro={isPro}/>}
+                        {view === 'transactions' && <TransactionsView transactions={transactions} onAddTransaction={handleAddTransaction} onUpdateTransaction={handleUpdateTransaction} onDeleteTransaction={handleDeleteTransaction} isPro={isPro} onUpgradeRequest={triggerUpgrade} />}
                         {view === 'calendar' && <CalendarView tasks={tasks} onAddTask={handleAddTask} onUpdateTask={handleUpdateTask} onDeleteTask={handleDeleteTask}/>}
                         {view === 'charts' && <ChartView transactions={transactions} />}
-                        {view === 'export' && <PdfExporterView transactions={transactions} profile={profile}/>}
+                        {view === 'export' && <PdfExporterView transactions={transactions} profile={profile} isPro={isPro} onUpgradeRequest={triggerUpgrade} />}
                         {view === 'settings' && <SettingsView profile={profile} onUpdateProfile={handleUpdateProfile} onLogout={handleLogout}/>}
 
                     </main>
@@ -1037,9 +1078,9 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="text-sm font-medium text-slate-300 block mb-2" htmlFor="phone">WhatsApp</label>
+                                    <label className="text-sm font-medium text-slate-300 block mb-2" htmlFor="phone">Telefone</label>
                                     <div className="relative flex items-center">
-                                       <WhatsAppIcon className="w-5 h-5 text-slate-400 absolute left-4"/>
+                                       <PhoneIcon className="w-5 h-5 text-slate-400 absolute left-4"/>
                                        <input id="phone" className="w-full bg-slate-700 rounded-lg py-3 pl-12 pr-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500" type="tel" value={phone} onChange={e => setPhone(e.target.value)} required placeholder="(XX) XXXXX-XXXX" />
                                     </div>
                                 </div>
@@ -1075,7 +1116,7 @@
         
         const LandingPage = ({ setView }) => {
             const features = [
-              { title: "Controle Financeiro Descomplicado", description: "Registre suas receitas e despesas diretamente pelo WhatsApp, de forma rápida e intuitiva." },
+              { title: "Controle Financeiro Descomplicado", description: "Registre suas receitas e despesas em nossa plataforma, de forma rápida e intuitiva." },
               { title: "Categorização com IA", description: "Nossa Inteligência Artificial analisa suas despesas e as categoriza automaticamente para você." },
               { title: "Relatórios Inteligentes", description: "Visualize gráficos e relatórios que te ajudam a entender para onde seu dinheiro está indo." },
               { title: "Foco no seu Negócio", description: "Gaste menos tempo com planilhas e mais tempo fazendo o que você ama: crescer sua empresa." },
@@ -1103,8 +1144,8 @@
         
                     <section className="text-center py-20 md:py-32">
                         <h1 className="text-4xl md:text-6xl font-black text-white leading-tight mb-4">
-                            Organize as finanças do seu negócio <br />
-                            <span className="bg-gradient-to-r from-green-400 to-cyan-400 text-transparent bg-clip-text animated-gradient-text">pelo WhatsApp.</span>
+                            Organize suas finanças de forma fácil <br />
+                            <span className="bg-gradient-to-r from-green-400 to-cyan-400 text-transparent bg-clip-text animated-gradient-text">com Inteligência Artificial.</span>
                         </h1>
                         <p className="max-w-3xl mx-auto text-lg md:text-xl text-slate-300 mb-8">
                             Chega de planilhas complicadas. Use nosso assistente com Inteligência Artificial para controlar suas finanças de forma simples e intuitiva.
