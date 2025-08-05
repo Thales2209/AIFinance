@@ -1,0 +1,1181 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Assistente Financeiro IA</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- React, ReactDOM, Babel, and other libraries -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/recharts@2.12.7/umd/Recharts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+    <style>
+      body {
+        font-family: 'Exo 2', sans-serif;
+        background-color: #020617;
+      }
+      .animated-gradient-text {
+        background-size: 200% 200%;
+        animation: gradient-animation 4s ease infinite;
+      }
+      @keyframes gradient-animation {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+      .animate-in { animation: enter 0.3s ease-out; }
+      .fade-in-0 { opacity: 0; animation-name: fade-in; animation-fill-mode: forwards; }
+      .zoom-in-95 { transform: scale(0.95); animation-name: zoom-in; animation-fill-mode: forwards;}
+      @keyframes enter {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+      }
+      @keyframes fade-in { from { opacity: 0 } to { opacity: 1 }}
+      @keyframes zoom-in { from { transform: scale(0.95) } to { transform: scale(1) }}
+      .animate-spin { animation: spin 1s linear infinite; }
+      @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+       .animate-bounce {
+        animation: bounce 1s infinite;
+      }
+      @keyframes bounce {
+        0%, 100% {
+          transform: translateY(-25%);
+          animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+        }
+        50% {
+          transform: translateY(0);
+          animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+        }
+      }
+    </style>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-slate-950 text-white antialiased">
+    <div id="root">
+        <!-- App loading state -->
+        <div class="min-h-screen bg-slate-950 flex justify-center items-center">
+            <div class="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-cyan-400"></div>
+        </div>
+    </div>
+    
+    <!-- This is where your entire React application lives -->
+    <script type="text/babel">
+        // --- Hardcoded Configuration ---
+        const APP_CONFIG = {
+          supabaseUrl: 'https://gagrzfzqfybyogxpkqjb.supabase.co',
+          supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhZ3J6ZnpxZnlieW9neHBrcWpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQzMjMyNzksImV4cCI6MjA2OTg5OTI3OX0.3dC7OdtKx5-bBSmNPCvdu9CcWky-noN-ey9FuNbvisI',
+          stripePaymentLink: 'https://buy.stripe.com/test_8x23cvae995MaagetU14400',
+        };
+
+        const { createClient } = supabase;
+        const { useState, useEffect, useMemo, useRef } = React;
+        const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = Recharts;
+        
+        // --- Supabase Client ---
+        const { supabaseUrl, supabaseKey } = APP_CONFIG;
+        if (!supabaseUrl || !supabaseKey) {
+            // This error should not happen with the new hardcoded structure.
+            throw new Error("As chaves do Supabase não estão configuradas.");
+        }
+        const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+        // --- All Components go here ---
+
+        // ICONS
+        const LoginIcon = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+            </svg>
+        );
+        const LogoutIcon = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+        );
+        const ChartIcon = ({ className = "h-6 w-6" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+        );
+        const PdfIcon = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+        );
+        const BotIcon = ({ className = "w-8 h-8 text-cyan-400" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8.25v-1.5m0 7.5v-1.5m0 7.5v-1.5m0-15A9 9 0 1012 21a9 9 0 000-18z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 12a2.25 2.25 0 114.5 0 2.25 2.25 0 01-4.5 0z" />
+            </svg>
+        );
+        const CheckIcon = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
+        const DashboardIcon = ({ className = "w-8 h-8 text-cyan-400" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+            </svg>
+        );
+        const PlusIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+        );
+        const BuildingOfficeIcon = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 4h5m-5 4h5m-5-4h.01M9 7h.01M13 7h.01M13 11h.01M13 15h.01" />
+            </svg>
+        );
+        const EmailIcon = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+        );
+        const LockClosedIcon = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+        );
+        const WhatsAppIcon = ({ className = "w-5 h-5 text-slate-400" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="currentColor" viewBox="0 0 24 24">
+                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.894 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.886-.001 2.269.655 4.356 1.905 6.084l-1.214 4.425 4.569-1.189z" />
+            </svg>
+        );
+        const CalendarIcon = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+        );
+        const SettingsIcon = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+        );
+        const ClipboardListIcon = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
+        );
+        const TrashIcon = ({ className = "h-5 w-5" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+        );
+        const UploadIcon = ({ className = "h-4 w-4" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+        );
+        const PencilIcon = ({ className = "h-5 w-5" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L15.232 5.232z" />
+            </svg>
+        );
+        const CloseIcon = ({ className = "h-5 w-5" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        );
+        const SparklesIcon = ({ className = "w-8 h-8 text-cyan-400" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.898 20.572L16.5 21.75l-.398-1.178a3.375 3.375 0 00-2.455-2.456L12.75 18l1.178-.398a3.375 3.375 0 002.455-2.456L16.5 14.25l.398 1.178a3.375 3.375 0 002.456 2.456L20.25 18l-1.178.398a3.375 3.375 0 00-2.456 2.456z" />
+            </svg>
+        );
+
+        // --- AI Service ---
+        const getCategoryFromAI = async (description) => {
+            if (!description) return "Outros";
+            try {
+                const { data, error } = await supabaseClient.functions.invoke('categorize-transaction', {
+                    body: { description },
+                });
+                if (error) throw error;
+                return data.category || "Outros";
+            } catch (error) {
+                console.error("AI Categorization Error:", error);
+                return "Outros";
+            }
+        };
+
+        // --- All other components ---
+        
+        const DashboardPreview = () => {
+            return (
+                <div className="max-w-md mx-auto bg-slate-900/80 border border-slate-700 rounded-2xl shadow-2xl shadow-black/50 flex flex-col h-[600px] backdrop-blur-sm p-6">
+                    <div className="flex items-center gap-4 mb-6">
+                         <div className="w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center border border-slate-600">
+                            <ChartIcon className="w-7 h-7 text-cyan-400" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-white text-lg">Dashboard Intuitivo</h3>
+                            <p className="text-sm text-slate-400">Visão geral das suas finanças.</p>
+                        </div>
+                    </div>
+                    
+                    <div className="flex-1 border border-slate-700 rounded-lg p-4 flex flex-col justify-end gap-2 bg-slate-800/50">
+                        <div className="flex items-end justify-around h-full gap-2">
+                            <div className="w-full bg-red-500/50 rounded-t-sm" style={{ height: '40%' }}></div>
+                            <div className="w-full bg-green-500/50 rounded-t-sm" style={{ height: '70%' }}></div>
+                            <div className="w-full bg-red-500/50 rounded-t-sm" style={{ height: '30%' }}></div>
+                            <div className="w-full bg-green-500/50 rounded-t-sm" style={{ height: '85%' }}></div>
+                            <div className="w-full bg-red-500/50 rounded-t-sm" style={{ height: '55%' }}></div>
+                            <div className="w-full bg-green-500/50 rounded-t-sm" style={{ height: '60%' }}></div>
+                        </div>
+                         <div className="border-t border-slate-700 mt-2 flex justify-around text-xs text-slate-500 pt-1">
+                            <span>Jan</span><span>Fev</span><span>Mar</span><span>Abr</span><span>Mai</span><span>Jun</span>
+                        </div>
+                    </div>
+
+                    <div className="mt-6">
+                        <h4 className="font-semibold text-slate-300 mb-2">Lançamentos Recentes</h4>
+                        <div className="space-y-3">
+                            <div className="flex justify-between items-center bg-slate-800/60 p-3 rounded-lg">
+                                <p className="text-sm text-white">Pagamento Cliente Y</p>
+                                <p className="text-sm font-bold text-green-400">+ R$ 2.500,00</p>
+                            </div>
+                            <div className="flex justify-between items-center bg-slate-800/60 p-3 rounded-lg">
+                                <p className="text-sm text-white">Aluguel do Escritório</p>
+                                <p className="text-sm font-bold text-red-400">- R$ 800,00</p>
+                            </div>
+                             <div className="flex justify-between items-center bg-slate-800/60 p-3 rounded-lg opacity-70">
+                                <p className="text-sm text-white">Gasolina</p>
+                                <p className="text-sm font-bold text-red-400">- R$ 150,50</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const LoginPage = ({ onBack, setView }) => {
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [error, setError] = useState('');
+            const [loading, setLoading] = useState(false);
+
+            const handleLogin = async (e) => {
+                e.preventDefault();
+                setError('');
+                setLoading(true);
+                const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                setLoading(false);
+                if (error) setError('E-mail ou senha inválidos.');
+                else setView('members');
+            };
+
+            return (
+                <div className="w-full max-w-md mx-auto">
+                    <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-8 text-center backdrop-blur-sm">
+                        <h2 className="text-2xl font-bold text-white mb-2">Acessar Área de Membros</h2>
+                        <p className="text-slate-400 mb-6">Insira seu e-mail e senha para continuar.</p>
+                        <form onSubmit={handleLogin} className="space-y-4">
+                            <div className="relative">
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-3"><EmailIcon /></span>
+                                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" className="w-full bg-slate-700 rounded-lg py-3 pl-10 pr-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent"/>
+                            </div>
+                            <div className="relative">
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-3"><LockClosedIcon /></span>
+                                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Sua senha" className="w-full bg-slate-700 rounded-lg py-3 pl-10 pr-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent"/>
+                            </div>
+                            {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
+                            <button type="submit" disabled={loading} className="w-full mt-4 bg-gradient-to-r from-green-500 to-cyan-500 hover:from-green-600 hover:to-cyan-600 text-white font-bold py-3 px-6 rounded-lg transition-all text-lg shadow-lg shadow-cyan-500/20 disabled:from-slate-600 disabled:to-slate-700">
+                                {loading ? 'Acessando...' : 'Acessar'}
+                            </button>
+                        </form>
+                        <div className="text-center mt-6">
+                            <button onClick={onBack} className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors">&larr; Voltar para o início</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const RegisterPage = ({ onBack, setView }) => {
+            const [companyName, setCompanyName] = useState('');
+            const [email, setEmail] = useState('');
+            const [phone, setPhone] = useState('');
+            const [password, setPassword] = useState('');
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState('');
+            const [message, setMessage] = useState('');
+
+            const formatPhoneNumber = (value) => {
+                if (!value) return value;
+                const phoneNumber = value.replace(/[^\d]/g, '');
+                const phoneNumberLength = phoneNumber.length;
+                if (phoneNumberLength < 3) return `(${phoneNumber}`;
+                if (phoneNumberLength < 8) return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2)}`;
+                return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2, 7)}-${phoneNumber.slice(7, 11)}`;
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (!email || !password || !companyName) {
+                    setError('Todos os campos são obrigatórios.');
+                    return;
+                }
+                setError('');
+                setMessage('');
+                setLoading(true);
+                const { data, error } = await supabaseClient.auth.signUp({
+                    email, password, options: { data: { company_name: companyName, phone: phone } }
+                });
+                setLoading(false);
+                if (error) setError(error.message);
+                else if (data.user?.identities?.length === 0) setError("Usuário já existe. Tente fazer login.");
+                else if (data.user) {
+                    if (data.user.aud === 'authenticated') {
+                        setMessage('Conta criada com sucesso! Redirecionando...');
+                        setTimeout(() => setView('members'), 1500);
+                    } else {
+                        setMessage('Conta criada! Por favor, verifique seu e-mail para confirmar sua conta.');
+                    }
+                }
+            };
+
+            return (
+                <main className="relative z-10 container mx-auto px-6 py-16 md:py-24 flex justify-center items-center min-h-[calc(100vh-150px)]">
+                    <div className="w-full max-w-lg mx-auto">
+                        <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-8 backdrop-blur-sm">
+                            <div className="text-center mb-8">
+                                <h2 className="text-3xl font-bold text-white">Crie sua Conta de Teste</h2>
+                                <p className="text-slate-400 mt-2">Comece a organizar suas finanças agora mesmo.</p>
+                            </div>
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <div className="relative">
+                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3"><BuildingOfficeIcon /></span>
+                                    <input type="text" placeholder="Nome da Empresa" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="w-full bg-slate-700 rounded-lg py-3 pl-10 pr-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent"/>
+                                </div>
+                                <div className="relative">
+                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3"><EmailIcon /></span>
+                                    <input type="email" placeholder="Seu melhor e-mail" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-slate-700 rounded-lg py-3 pl-10 pr-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent"/>
+                                </div>
+                                <div className="relative">
+                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3"><WhatsAppIcon /></span>
+                                    <input type="tel" placeholder="Seu Telefone" value={phone} onChange={(e) => setPhone(formatPhoneNumber(e.target.value))} className="w-full bg-slate-700 rounded-lg py-3 pl-10 pr-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent"/>
+                                </div>
+                                <div className="relative">
+                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3"><LockClosedIcon /></span>
+                                    <input type="password" placeholder="Crie uma senha" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-slate-700 rounded-lg py-3 pl-10 pr-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent"/>
+                                </div>
+                                {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+                                {message && <p className="text-green-400 text-sm text-center">{message}</p>}
+                                <button type="submit" disabled={loading || !!message} className="w-full mt-6 bg-gradient-to-r from-green-500 to-cyan-500 hover:from-green-600 hover:to-cyan-600 text-white font-bold py-3 px-6 rounded-lg transition-all text-lg shadow-lg shadow-cyan-500/20 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed">
+                                    {loading ? 'Criando conta...' : 'Criar Conta e Acessar'}
+                                </button>
+                            </form>
+                            <div className="text-center mt-6">
+                                <button onClick={onBack} className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors">&larr; Voltar para o início</button>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            );
+        };
+
+        const UpgradeModal = ({ message, onClose, userEmail }) => {
+            const handleUpgradeClick = () => {
+                const STRIPE_PAYMENT_LINK = APP_CONFIG.stripePaymentLink;
+                if (!STRIPE_PAYMENT_LINK || !STRIPE_PAYMENT_LINK.startsWith('https://buy.stripe.com/')) {
+                    alert('Link de Pagamento do Stripe não configurado.');
+                    return;
+                }
+                let finalUrl = STRIPE_PAYMENT_LINK;
+                if (userEmail) {
+                    const separator = finalUrl.includes('?') ? '&' : '?';
+                    finalUrl += `${separator}prefilled_email=${encodeURIComponent(userEmail)}`;
+                }
+                window.open(finalUrl, '_blank', 'noopener,noreferrer');
+            };
+
+            return (
+                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex justify-center items-center" onClick={onClose}>
+                    <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8 w-full max-w-md mx-4 text-center transform transition-all animate-in fade-in-0 zoom-in-95" onClick={e => e.stopPropagation()}>
+                        <div className="mx-auto mb-4 bg-cyan-500/10 border border-cyan-500/30 rounded-full h-16 w-16 flex items-center justify-center"><SparklesIcon /></div>
+                        <h2 className="text-2xl font-bold text-white mb-2">Funcionalidade Pro</h2>
+                        <p className="text-slate-300 mb-6">{message}</p>
+                        <div className="flex flex-col sm:flex-row justify-center gap-4">
+                            <button onClick={onClose} className="bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-6 rounded-lg transition-colors order-2 sm:order-1">Continuar Testando</button>
+                            <button onClick={handleUpgradeClick} className="bg-gradient-to-r from-green-500 to-cyan-500 hover:from-green-600 hover:to-cyan-600 text-white font-bold py-2 px-6 rounded-lg transition-all shadow-lg shadow-cyan-500/20 order-1 sm:order-2">Fazer Upgrade para o Pro</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        const NavItem = ({ icon, label, isActive, onClick }) => (
+            <li>
+                <button onClick={onClick} className={`flex items-center w-full gap-3 px-4 py-3 rounded-lg transition-colors text-base font-semibold ${ isActive ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-400 hover:bg-slate-700/50 hover:text-white' }`}>
+                    {icon}
+                    <span>{label}</span>
+                </button>
+            </li>
+        );
+
+        const Sidebar = ({ activeView, setActiveView, onLogout }) => {
+            return (
+                <aside className="w-64 flex-shrink-0 bg-slate-800/40 border border-slate-700 rounded-2xl p-4 backdrop-blur-sm flex flex-col justify-between self-start">
+                    <div>
+                        <nav><ul className="space-y-2">
+                            <NavItem icon={<ChartIcon />} label="Gráfico Anual" isActive={activeView === 'chart'} onClick={() => setActiveView('chart')} />
+                            <NavItem icon={<ClipboardListIcon />} label="Lançamentos" isActive={activeView === 'transactions'} onClick={() => setActiveView('transactions')} />
+                            <NavItem icon={<CalendarIcon />} label="Calendário" isActive={activeView === 'calendar'} onClick={() => setActiveView('calendar')} />
+                            <NavItem icon={<PdfIcon />} label="Exportar PDF" isActive={activeView === 'pdf_exporter'} onClick={() => setActiveView('pdf_exporter')} />
+                            <NavItem icon={<SettingsIcon />} label="Configurações" isActive={activeView === 'settings'} onClick={() => setActiveView('settings')} />
+                        </ul></nav>
+                    </div>
+                    <div>
+                        <button onClick={onLogout} className="flex items-center w-full gap-3 px-4 py-3 rounded-lg transition-colors text-base font-semibold text-red-400 hover:bg-red-500/10">
+                            <LogoutIcon /><span>Sair</span>
+                        </button>
+                    </div>
+                </aside>
+            );
+        };
+        
+        const ChartView = ({ transactions }) => {
+            const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            const monthlyData = useMemo(() => {
+                const data = months.map(month => ({ name: month, Receita: 0, Despesa: 0 }));
+                transactions.forEach(tx => {
+                    const monthIndex = parseInt(tx.date.split('/')[1], 10) - 1;
+                    if (monthIndex >= 0 && monthIndex < 12) {
+                        if (tx.type === 'Receita') data[monthIndex].Receita += tx.amount;
+                        else data[monthIndex].Despesa += tx.amount;
+                    }
+                });
+                return data;
+            }, [transactions]);
+
+            const CustomTooltip = ({ active, payload, label }) => {
+                if (active && payload && payload.length) {
+                    return (
+                        <div className="bg-slate-800/80 border border-slate-600 backdrop-blur-sm p-3 rounded-lg shadow-lg">
+                            <p className="font-bold text-white mb-2">{`${label}`}</p>
+                            <p className="text-sm text-green-400">{`Receita: R$ ${payload[0].value.toFixed(2).replace('.', ',')}`}</p>
+                            <p className="text-sm text-red-400">{`Despesa: R$ ${payload[1].value.toFixed(2).replace('.', ',')}`}</p>
+                        </div>
+                    );
+                }
+                return null;
+            };
+
+            return (
+                <div className="w-full">
+                    <h2 className="text-3xl font-bold text-white mb-6">Resumo Financeiro Anual</h2>
+                    <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm h-[500px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={monthlyData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }} barGap={8}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                                <XAxis dataKey="name" stroke="#94a3b8" tick={{ fill: '#94a3b8' }} />
+                                <YAxis stroke="#94a3b8" tick={{ fill: '#94a3b8' }} tickFormatter={(value) => `R$${value/1000}k`} />
+                                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(148, 163, 184, 0.1)' }}/>
+                                <Legend wrapperStyle={{ color: '#e2e8f0' }} />
+                                <Bar dataKey="Receita" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="Despesa" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+            );
+        };
+
+        const AddTransactionForm = ({ onTransactionAdded }) => {
+            const [amount, setAmount] = useState('');
+            const [day, setDay] = useState('');
+            const [description, setDescription] = useState('');
+            const [isLoading, setIsLoading] = useState(false);
+            const [error, setError] = useState(null);
+            const [isRevenue, setIsRevenue] = useState(false);
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (!amount || !day || !description) {
+                    setError("Por favor, preencha todos os campos.");
+                    return;
+                }
+                setError(null);
+                setIsLoading(true);
+
+                try {
+                    const transactionType = isRevenue ? 'Receita' : 'Despesa';
+                    const category = transactionType === 'Despesa' ? await getCategoryFromAI(description) : 'Renda';
+                    const now = new Date();
+                    const transactionDate = new Date(now.getFullYear(), now.getMonth(), parseInt(day));
+
+                    onTransactionAdded({
+                        date: transactionDate.toLocaleDateString('pt-BR', { year: 'numeric', month: '2-digit', day: '2-digit'}),
+                        description,
+                        amount: parseFloat(amount.replace(',', '.')),
+                        type: transactionType,
+                        category,
+                    });
+                    setAmount(''); setDay(''); setDescription(''); setIsRevenue(false);
+                } catch (err) {
+                    setError("Ocorreu um erro ao adicionar a transação.");
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            
+            return (
+                <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm">
+                    <h3 className="text-xl font-bold text-white mb-1">Adicionar Transação</h3>
+                    <p className="text-slate-400 mb-4 text-sm">Adicione suas receitas e despesas.</p>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                         <div className="flex bg-slate-700/80 rounded-lg p-1 border border-slate-600">
+                            <button type="button" onClick={() => setIsRevenue(false)} className={`w-1/2 rounded-md py-1.5 text-sm font-semibold transition-colors ${!isRevenue ? 'bg-red-600/80 text-white' : 'text-slate-300 hover:bg-slate-600/50'}`}>Despesa</button>
+                            <button type="button" onClick={() => setIsRevenue(true)} className={`w-1/2 rounded-md py-1.5 text-sm font-semibold transition-colors ${isRevenue ? 'bg-green-600/80 text-white' : 'text-slate-300 hover:bg-slate-600/50'}`}>Receita</button>
+                        </div>
+                        <div className="flex gap-4">
+                            <div className="w-1/3">
+                                <label htmlFor="amount" className="block text-xs font-medium text-slate-400 mb-1">Valor</label>
+                                <input id="amount" type="text" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="150,50" className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent" />
+                            </div>
+                             <div className="w-1/3">
+                                <label htmlFor="day" className="block text-xs font-medium text-slate-400 mb-1">Dia</label>
+                                <input id="day" type="number" value={day} onChange={(e) => setDay(e.target.value)} placeholder="22" min="1" max="31" className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent" />
+                            </div>
+                             <div className="w-1/3">
+                                <label htmlFor="type" className="block text-xs font-medium text-slate-400 mb-1">Tipo</label>
+                                <div className="bg-slate-700 rounded-lg py-2 px-3 text-white font-semibold">{isRevenue ? 'Receita' : 'Despesa'}</div>
+                            </div>
+                        </div>
+                        <div>
+                            <label htmlFor="description" className="block text-xs font-medium text-slate-400 mb-1">Descrição</label>
+                            <input id="description" type="text" value={description} onChange={(e) => setDescription(e.target.value)} placeholder={isRevenue ? 'Ex: Pagamento Cliente Y' : 'Ex: Jantar com amigos'} className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent" />
+                        </div>
+                        {error && <p className="text-red-400 text-sm">{error}</p>}
+                        <button type="submit" disabled={isLoading} className="w-full mt-4 bg-gradient-to-r from-green-500 to-cyan-500 hover:from-green-600 hover:to-cyan-600 text-white font-bold py-3 px-4 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed">
+                            {isLoading ? ( <div className="typing-indicator flex gap-1 items-center"><span className="w-1.5 h-1.5 bg-white rounded-full inline-block animate-bounce [animation-delay:-0.3s]"></span><span className="w-1.5 h-1.5 bg-white rounded-full inline-block animate-bounce [animation-delay:-0.15s]"></span><span className="w-1.5 h-1.5 bg-white rounded-full inline-block animate-bounce"></span></div> ) : ( <><PlusIcon /> Adicionar</> )}
+                        </button>
+                    </form>
+                </div>
+            );
+        };
+        
+        const EditTransactionModal = ({ transaction, onClose, onSave }) => {
+            const [formData, setFormData] = useState({ ...transaction });
+            const [isSaving, setIsSaving] = useState(false);
+
+            useEffect(() => setFormData({ ...transaction }), [transaction]);
+            
+            const handleChange = (e) => {
+                const { name, value } = e.target;
+                setFormData(prev => ({ ...prev, [name]: name === 'amount' ? parseFloat(value.replace(',', '.')) || 0 : value }));
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                setIsSaving(true); onSave(formData); setIsSaving(false);
+            };
+
+            return (
+                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex justify-center items-center" onClick={onClose}>
+                    <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8 w-full max-w-lg mx-4" onClick={e => e.stopPropagation()}>
+                        <h2 className="text-2xl font-bold text-white mb-6">Editar Transação</h2>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label htmlFor="date" className="block text-sm font-medium text-slate-400 mb-1">Data</label>
+                                <input id="date" name="date" type="text" value={formData.date} onChange={handleChange} placeholder="DD/MM/AAAA" className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent" />
+                            </div>
+                            <div>
+                                <label htmlFor="description" className="block text-sm font-medium text-slate-400 mb-1">Descrição</label>
+                                <input id="description" name="description" type="text" value={formData.description} onChange={handleChange} className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent" />
+                            </div>
+                             <div className="flex gap-4">
+                                <div className="w-1/2">
+                                     <label htmlFor="amount" className="block text-sm font-medium text-slate-400 mb-1">Valor</label>
+                                    <input id="amount" name="amount" type="text" inputMode="decimal" value={String(formData.amount).replace('.', ',')} onChange={handleChange} className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent" />
+                                </div>
+                                <div className="w-1/2">
+                                    <label htmlFor="type" className="block text-sm font-medium text-slate-400 mb-1">Tipo</label>
+                                    <select id="type" name="type" value={formData.type} onChange={handleChange} className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent">
+                                        <option value="Despesa">Despesa</option><option value="Receita">Receita</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                 <label htmlFor="category" className="block text-sm font-medium text-slate-400 mb-1">Categoria</label>
+                                <input id="category" name="category" type="text" value={formData.category} onChange={handleChange} className="w-full bg-slate-700 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent" />
+                            </div>
+                            <div className="flex justify-end gap-4 pt-4">
+                                <button type="button" onClick={onClose} className="bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg transition-colors">Cancelar</button>
+                                <button type="submit" disabled={isSaving} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:from-slate-600 disabled:to-slate-700">{isSaving ? 'Salvando...' : 'Salvar Alterações'}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+        
+        const TransactionsView = ({ transactions, onTransactionAdded, onTransactionRemoved, onTransactionEdited, onTransactionsImported, isProUser, openUpgradeModal }) => {
+            const [selectedMonth, setSelectedMonth] = useState('all');
+            const [selectedYear, setSelectedYear] = useState('all');
+            const [isImporting, setIsImporting] = useState(false);
+            const [importError, setImportError] = useState(null);
+            const [importSuccess, setImportSuccess] = useState(null);
+            const fileInputRef = useRef(null);
+            const [editingTransaction, setEditingTransaction] = useState(null);
+
+            const availableYears = useMemo(() => {
+                const years = new Set(transactions.map(tx => tx.date.split('/')[2]));
+                return ['all', ...Array.from(years).sort((a, b) => parseInt(b, 10) - parseInt(a, 10))];
+            }, [transactions]);
+
+            const filteredTransactions = useMemo(() => {
+                return transactions.filter(tx => {
+                    const [_, month, year] = tx.date.split('/');
+                    const monthMatch = selectedMonth === 'all' || parseInt(month, 10) === parseInt(selectedMonth, 10);
+                    const yearMatch = selectedYear === 'all' || year === selectedYear;
+                    return monthMatch && yearMatch;
+                });
+            }, [transactions, selectedMonth, selectedYear]);
+            
+            const handleImportClick = () => {
+                if (isProUser) fileInputRef.current?.click();
+                else openUpgradeModal('A importação de planilhas é uma funcionalidade exclusiva do plano Pro.');
+            };
+
+            const handleFileChange = async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                setIsImporting(true); setImportError(null); setImportSuccess(null);
+                try {
+                    const data = new Uint8Array(await file.arrayBuffer());
+                    const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const json = XLSX.utils.sheet_to_json(worksheet);
+                    if (json.length === 0) throw new Error("A planilha está vazia.");
+                    const firstRow = json[0];
+                    if (!('Data' in firstRow && 'Descrição' in firstRow && 'Valor' in firstRow && 'Tipo' in firstRow)) {
+                        throw new Error("A planilha deve conter as colunas: Data, Descrição, Valor, Tipo.");
+                    }
+                    const newTransactions = json.map((row) => {
+                        const type = String(row.Tipo).trim() === 'Receita' ? 'Receita' : 'Despesa';
+                        return {
+                            date: new Date(row.Data).toLocaleDateString('pt-BR', { year: 'numeric', month: '2-digit', day: '2-digit'}),
+                            description: String(row.Descrição),
+                            amount: parseFloat(row.Valor), type,
+                            category: type === 'Receita' ? 'Renda' : "Outros",
+                        };
+                    });
+                    onTransactionsImported(newTransactions);
+                    setImportSuccess(`${newTransactions.length} transações importadas com sucesso!`);
+                } catch (err) {
+                    setImportError(err instanceof Error ? err.message : "Erro ao processar a planilha.");
+                } finally {
+                    setIsImporting(false);
+                    if(e.target) e.target.value = '';
+                }
+            };
+
+            const summary = useMemo(() => {
+                let totalReceitas = 0, totalDespesas = 0;
+                filteredTransactions.forEach(tx => tx.type === 'Receita' ? totalReceitas += tx.amount : totalDespesas += tx.amount);
+                return { totalReceitas, totalDespesas, saldo: totalReceitas - totalDespesas };
+            }, [filteredTransactions]);
+
+            const SummaryCard = ({ title, value, colorClass }) => (
+                 <div className="bg-slate-800/50 p-6 rounded-lg border border-slate-700/50">
+                    <p className="text-sm text-slate-400 mb-1">{title}</p>
+                    <p className={`text-3xl font-bold ${colorClass}`}>R$ {value.toFixed(2).replace('.', ',')}</p>
+                </div>
+            );
+
+            const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+            return (
+                <div className="w-full">
+                    <h2 className="text-3xl font-bold text-white mb-6">Lançamentos</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <SummaryCard title="Total de Receitas" value={summary.totalReceitas} colorClass="text-green-400" />
+                        <SummaryCard title="Total de Despesas" value={summary.totalDespesas} colorClass="text-red-400" />
+                        <SummaryCard title="Saldo do Período" value={summary.saldo} colorClass={summary.saldo >= 0 ? 'text-cyan-400' : 'text-red-400'} />
+                    </div>
+                    <div className="mt-8 grid grid-cols-1 lg:grid-cols-5 gap-8">
+                        <div className="lg:col-span-2"><AddTransactionForm onTransactionAdded={onTransactionAdded} /></div>
+                        <div className="lg:col-span-3">
+                            <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm h-full flex flex-col">
+                                 <div className="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-4 md:gap-2">
+                                    <h3 className="text-xl font-bold text-white">Atividade Recente</h3>
+                                    <div className="flex gap-2">
+                                        <button onClick={handleImportClick} disabled={isImporting} className="bg-cyan-600/80 hover:bg-cyan-500 text-white font-bold py-1 px-3 rounded-lg text-sm flex items-center gap-2 transition-colors disabled:bg-slate-600 disabled:cursor-not-allowed">
+                                            <UploadIcon /> {isImporting ? 'Processando...' : 'Importar Planilha'}
+                                        </button>
+                                        <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".xlsx, .xls" className="hidden" />
+                                    </div>
+                                 </div>
+                                 {importError && <p className="text-red-400 text-sm mb-2">{importError}</p>}
+                                 {importSuccess && <p className="text-green-400 text-sm mb-2">{importSuccess}</p>}
+                                 <div className="flex gap-2 mb-4">
+                                    <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} className="bg-slate-700 rounded-lg py-1 px-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent w-full">
+                                        <option value="all">Todos os Meses</option>
+                                        {months.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+                                    </select>
+                                    <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)} className="bg-slate-700 rounded-lg py-1 px-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent w-full">
+                                        {availableYears.map(y => <option key={y} value={y}>{y === 'all' ? 'Todos os Anos' : y}</option>)}
+                                    </select>
+                                </div>
+                                 <div className="space-y-3 flex-1 overflow-y-auto pr-2">
+                                    {filteredTransactions.length > 0 ? filteredTransactions.map(tx => (
+                                        <div key={tx.id} className="flex justify-between items-center bg-slate-800/50 p-4 rounded-lg border border-slate-700/50 hover:border-slate-600 transition-colors">
+                                            <div className="flex-1 overflow-hidden mr-2">
+                                                <p className="font-semibold text-white truncate">{tx.description}</p>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <p className="text-xs text-slate-400">{tx.date}</p><span className="text-slate-500">&bull;</span>
+                                                    <span className="text-xs bg-cyan-900/50 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-700/50">{tx.category}</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 flex-shrink-0">
+                                                <p className={`font-bold text-lg ${tx.type === 'Receita' ? 'text-green-400' : 'text-red-400'}`}>{tx.type === 'Receita' ? '+' : '-'} R$ {tx.amount.toFixed(2).replace('.', ',')}</p>
+                                                <button onClick={() => setEditingTransaction(tx)} className="text-slate-500 hover:text-cyan-400 transition-colors p-2 rounded-full hover:bg-cyan-500/10" aria-label="Editar transação"><PencilIcon /></button>
+                                                <button onClick={() => onTransactionRemoved(tx.id)} className="text-slate-500 hover:text-red-400 transition-colors p-2 rounded-full hover:bg-red-500/10" aria-label="Remover transação"><TrashIcon /></button>
+                                            </div>
+                                        </div>
+                                    )) : ( <div className="text-center py-16"><p className="text-slate-400">Nenhuma transação encontrada.</p><p className="text-sm text-slate-500">Tente ajustar os filtros ou adicionar um novo lançamento.</p></div> )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {editingTransaction && <EditTransactionModal transaction={editingTransaction} onClose={() => setEditingTransaction(null)} onSave={(updated) => { onTransactionEdited(updated); setEditingTransaction(null); }} />}
+                </div>
+            );
+        };
+        
+        const CalendarView = ({ tasks, onAddTask, onUpdateTask, onRemoveTask }) => {
+            const [currentDate, setCurrentDate] = useState(new Date());
+            const [selectedDay, setSelectedDay] = useState(null);
+            const [newTaskDescription, setNewTaskDescription] = useState('');
+
+            const tasksByDate = useMemo(() => {
+                const map = new Map();
+                tasks.forEach(task => {
+                    const [day, month, year] = task.date.split('/');
+                    const dateKey = `${year}-${parseInt(month, 10)}-${parseInt(day, 10)}`;
+                    if (!map.has(dateKey)) map.set(dateKey, []);
+                    map.get(dateKey)?.push(task);
+                });
+                return map;
+            }, [tasks]);
+
+            const changeMonth = (offset) => {
+                setSelectedDay(null);
+                setCurrentDate(prev => { const d = new Date(prev); d.setMonth(d.getMonth() + offset); return d; });
+            };
+            
+            const handleAddTask = (e) => {
+                e.preventDefault();
+                if (!newTaskDescription.trim() || !selectedDay) return;
+                const taskDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), selectedDay);
+                onAddTask({
+                    date: taskDate.toLocaleDateString('pt-BR', { year: 'numeric', month: '2-digit', day: '2-digit'}),
+                    description: newTaskDescription, status: 'A Fazer'
+                });
+                setNewTaskDescription('');
+            };
+
+            const selectedDayTasks = useMemo(() => {
+                if (!selectedDay) return [];
+                const dateKey = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${selectedDay}`;
+                const statusOrder = { 'Em Andamento': 1, 'A Fazer': 2, 'Finalizada': 3 };
+                return (tasksByDate.get(dateKey) || []).sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
+            }, [selectedDay, currentDate, tasksByDate]);
+
+            const renderCalendar = () => {
+                const year = currentDate.getFullYear(), month = currentDate.getMonth();
+                const firstDayOfMonth = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const calendarDays = [];
+                for (let i = 0; i < firstDayOfMonth; i++) calendarDays.push(<div key={`empty-${i}`} className="p-2"></div>);
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dateKey = `${year}-${month + 1}-${day}`;
+                    calendarDays.push(
+                        <button key={day} onClick={() => selectedDay === day ? setSelectedDay(null) : setSelectedDay(day)} className={`p-2 border rounded-md text-center transition-colors ${selectedDay === day ? 'bg-cyan-500/30 border-cyan-400' : 'border-slate-700/50 bg-slate-800/50 hover:bg-slate-700'} cursor-pointer`}>
+                            <span className="font-semibold text-white">{day}</span>
+                            {tasksByDate.has(dateKey) && <div className="flex justify-center mt-1.5"><span className={`w-2 h-2 ${selectedDay === day ? 'bg-white' : 'bg-cyan-400'} rounded-full`}></span></div>}
+                        </button>
+                    );
+                }
+                return calendarDays;
+            };
+
+            const getStatusColorClasses = (status) => {
+                switch (status) {
+                    case 'A Fazer': return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
+                    case 'Em Andamento': return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+                    case 'Finalizada': return 'bg-green-500/20 text-green-300 border-green-500/30';
+                }
+            };
+            const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            const monthsOfYear = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+            return (
+                <div className="w-full">
+                    <h2 className="text-3xl font-bold text-white mb-6">Calendário de Tarefas</h2>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                        <div className="lg:col-span-2 bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm">
+                            <div className="flex justify-between items-center mb-4">
+                                <button onClick={() => changeMonth(-1)} className="p-2 rounded-full hover:bg-slate-700 transition-colors">&larr;</button>
+                                <h3 className="text-xl font-bold text-white">{monthsOfYear[currentDate.getMonth()]} {currentDate.getFullYear()}</h3>
+                                <button onClick={() => changeMonth(1)} className="p-2 rounded-full hover:bg-slate-700 transition-colors">&rarr;</button>
+                            </div>
+                            <div className="grid grid-cols-7 gap-2">
+                                {daysOfWeek.map(day => <div key={day} className="text-center font-bold text-cyan-400 p-2">{day}</div>)}
+                                {renderCalendar()}
+                            </div>
+                            <div className="flex items-center gap-2 mt-6 text-sm text-slate-400"><span className="w-2.5 h-2.5 bg-cyan-400 rounded-full inline-block"></span><span>Dia com tarefas registradas</span></div>
+                        </div>
+                        <div className="lg:col-span-1">
+                            {selectedDay ? (
+                                <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm h-full">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="text-xl font-bold text-white">Tarefas de {selectedDay}/{currentDate.getMonth()+1}</h3>
+                                        <button onClick={() => setSelectedDay(null)} className="p-1.5 rounded-full hover:bg-slate-700 transition-colors"><CloseIcon /></button>
+                                    </div>
+                                     <form onSubmit={handleAddTask} className="flex gap-2 mb-4">
+                                        <input type="text" value={newTaskDescription} onChange={(e) => setNewTaskDescription(e.target.value)} placeholder="Adicionar nova tarefa..." className="flex-grow bg-slate-700 rounded-lg py-2 px-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 border border-transparent" />
+                                        <button type="submit" aria-label="Adicionar tarefa" className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold p-2 rounded-lg transition-colors flex-shrink-0 disabled:bg-slate-600" disabled={!newTaskDescription.trim()}><PlusIcon /></button>
+                                    </form>
+                                    <div className="space-y-3 overflow-y-auto max-h-[420px] pr-2">
+                                        {selectedDayTasks.length > 0 ? selectedDayTasks.map(task => (
+                                            <div key={task.id} className="bg-slate-800 p-3 rounded-lg border border-slate-700/70 flex items-center justify-between gap-2">
+                                                <p className={`font-semibold text-white text-sm flex-grow ${task.status === 'Finalizada' ? 'line-through text-slate-400' : ''}`}>{task.description}</p>
+                                                <div className="flex items-center gap-2 flex-shrink-0">
+                                                    <select value={task.status} onChange={(e) => onUpdateTask({ ...task, status: e.target.value })} className={`text-xs font-bold rounded-lg py-1 pl-2 pr-2 appearance-none focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-cyan-500 border-2 ${getStatusColorClasses(task.status)}`}>
+                                                        <option value="A Fazer">A Fazer</option><option value="Em Andamento">Em Andamento</option><option value="Finalizada">Finalizada</option>
+                                                    </select>
+                                                    <button onClick={() => onRemoveTask(task.id)} className="text-slate-500 hover:text-red-400 p-1.5 rounded-full hover:bg-red-500/10" aria-label="Remover tarefa"><TrashIcon className="w-4 h-4" /></button>
+                                                </div>
+                                            </div>
+                                        )) : <p className="text-slate-400 text-center py-8">Nenhuma tarefa para este dia.</p>}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm h-full flex items-center justify-center min-h-[200px]"><p className="text-slate-400 text-center">Selecione um dia no calendário para ver ou adicionar tarefas.</p></div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        const PdfExporterView = ({ userEmail, transactions, onTransactionEdited, isProUser, openUpgradeModal }) => {
+            const [editingTransaction, setEditingTransaction] = useState(null);
+
+            const generatePDF = () => {
+                const doc = new jspdf.jsPDF();
+                doc.setFontSize(20);
+                doc.text("Relatório Financeiro Mensal", 14, 22);
+                doc.setFontSize(12);
+                doc.text(`Usuário: ${userEmail}`, 14, 30);
+                doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 14, 36);
+
+                const tableColumn = ["Data", "Descrição", "Categoria", "Tipo", "Valor (R$)"];
+                const tableRows = [];
+                let totalReceitas = 0, totalDespesas = 0;
+                transactions.forEach(tx => {
+                    tableRows.push([tx.date, tx.description, tx.category, tx.type, tx.amount.toFixed(2).replace('.', ',')]);
+                    if (tx.type === 'Receita') totalReceitas += tx.amount; else totalDespesas += tx.amount;
+                });
+
+                jspdf.autoTable(doc, { head: [tableColumn], body: tableRows, startY: 50, theme: 'grid', headStyles: { fillColor: [38, 166, 154] } });
+                
+                const finalY = doc.lastAutoTable.finalY || 50;
+                const saldo = totalReceitas - totalDespesas;
+                doc.setFontSize(14);
+                doc.text("Resumo do Mês", 14, finalY + 15);
+                doc.setFontSize(12);
+                doc.text(`Total de Receitas: R$ ${totalReceitas.toFixed(2).replace('.', ',')}`, 14, finalY + 22);
+                doc.text(`Total de Despesas: R$ ${totalDespesas.toFixed(2).replace('.', ',')}`, 14, finalY + 28);
+                doc.setFont("helvetica", "bold");
+                doc.text(`Saldo Final: R$ ${saldo.toFixed(2).replace('.', ',')}`, 14, finalY + 34);
+                doc.save(`relatorio-financeiro.pdf`);
+            };
+
+            return (
+                <div className="w-full">
+                    <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-2xl font-bold text-white">Exportar Relatório PDF</h3>
+                             <button onClick={() => isProUser ? generatePDF() : openUpgradeModal('A exportação de PDF é exclusiva do plano Pro.')} className="bg-gradient-to-r from-green-500 to-cyan-500 hover:from-green-600 hover:to-cyan-600 text-white font-bold py-2 px-4 rounded-lg transition-all flex items-center gap-2 text-sm shadow-lg shadow-cyan-500/20"><PdfIcon />Gerar PDF</button>
+                        </div>
+                         <p className="text-slate-400 mb-6">Visualize suas transações e gere um relatório completo.</p>
+                        <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+                            {transactions.length > 0 ? transactions.map(tx => (
+                                <div key={tx.id} className="flex justify-between items-center bg-slate-800/50 p-4 rounded-lg border border-slate-700/50">
+                                    <div>
+                                        <p className="font-semibold text-white">{tx.description}</p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <p className="text-xs text-slate-400">{tx.date}</p><span className="text-slate-500">&bull;</span>
+                                            <span className="text-xs bg-cyan-900/50 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-700/50">{tx.category}</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                        <p className={`font-bold text-lg flex-shrink-0 ml-4 ${tx.type === 'Receita' ? 'text-green-400' : 'text-red-400'}`}>{tx.type === 'Receita' ? '+' : '-'} R$ {tx.amount.toFixed(2).replace('.', ',')}</p>
+                                        <button onClick={() => setEditingTransaction(tx)} className="text-slate-500 hover:text-cyan-400 transition-colors p-2 rounded-full hover:bg-cyan-500/10"><PencilIcon /></button>
+                                    </div>
+                                </div>
+                            )) : <p className="text-slate-400 text-center py-8">Nenhuma transação registrada.</p>}
+                        </div>
+                    </div>
+                    {editingTransaction && <EditTransactionModal transaction={editingTransaction} onClose={() => setEditingTransaction(null)} onSave={(updated) => { onTransactionEdited(updated); setEditingTransaction(null); }}/>}
+                </div>
+            );
+        };
+        
+        const SettingsView = ({ userEmail }) => {
+            const InfoField = ({ icon, label, value }) => (
+                <div>
+                    <label className="block text-sm font-medium text-slate-400">{label}</label>
+                    <div className="mt-1 relative">
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3">{icon}</span>
+                        <div className="w-full bg-slate-700/80 rounded-lg py-3 pl-10 pr-4 text-white placeholder-slate-400 border border-slate-600">{value}</div>
+                    </div>
+                </div>
+            );
+            return (
+                <div className="w-full">
+                    <h2 className="text-3xl font-bold text-white mb-6">Configurações de Perfil</h2>
+                    <div className="max-w-2xl">
+                         <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-8 backdrop-blur-sm">
+                            <div className="space-y-6">
+                                <InfoField icon={<EmailIcon />} label="Seu E-mail" value={userEmail} />
+                                <InfoField icon={<BuildingOfficeIcon />} label="Nome da Empresa (Em breve)" value="Minha Empresa Fantástica" />
+                                <div>
+                                     <label className="block text-sm font-medium text-slate-400">Senha</label>
+                                     <button className="mt-2 w-full md:w-auto bg-transparent hover:bg-cyan-400/10 text-cyan-400 font-bold py-2 px-4 rounded-lg transition-all flex items-center gap-2 text-sm border border-cyan-400/50"><LockClosedIcon /> Alterar Senha (Em breve)</button>
+                                </div>
+                            </div>
+                         </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const MembersArea = ({ session, onLogout }) => {
+            const [activeView, setActiveView] = useState('chart');
+            const [transactions, setTransactions] = useState([]);
+            const [tasks, setTasks] = useState([]);
+            const [isProUser, setIsProUser] = useState(false);
+            const [loading, setLoading] = useState(true);
+            const [isUpgradeModalOpen, setUpgradeModalOpen] = useState(false);
+            const [upgradeModalMessage, setUpgradeModalMessage] = useState('');
+            const user = session.user;
+
+            useEffect(() => {
+                const fetchData = async () => {
+                    if (!user) return; setLoading(true);
+                    const { data: profile } = await supabaseClient.from('profiles').select('is_pro').eq('id', user.id).single();
+                    if (profile) setIsProUser(profile.is_pro || false);
+                    const { data: txData } = await supabaseClient.from('transactions').select('*').eq('user_id', user.id).order('date', { ascending: false });
+                    setTransactions(txData || []);
+                    const { data: taskData } = await supabaseClient.from('tasks').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+                    setTasks(taskData || []);
+                    setLoading(false);
+                };
+                fetchData();
+
+                const profileSubscription = supabaseClient.channel(`public:profiles:id=eq.${user.id}`)
+                    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, (payload) => {
+                        if (payload.new.is_pro) setIsProUser(payload.new.is_pro);
+                        setUpgradeModalOpen(false);
+                    }).subscribe();
+                return () => supabaseClient.removeChannel(profileSubscription);
+            }, [user]);
+            
+            const openUpgradeModal = (message) => { setUpgradeModalMessage(message); setUpgradeModalOpen(true); };
+            
+            const handleAddTransaction = async (newTransaction) => {
+                if (!isProUser) {
+                    const { count } = await supabaseClient.from('transactions').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('type', newTransaction.type);
+                    if ((count ?? 0) >= 5) { openUpgradeModal(`Você atingiu o limite de 5 ${newTransaction.type === 'Despesa' ? 'despesas' : 'receitas'} do plano de teste.`); return; }
+                }
+                const { data } = await supabaseClient.from('transactions').insert({ ...newTransaction, user_id: user.id }).select().single();
+                if (data) setTransactions(prev => [data, ...prev]);
+            };
+            
+            const handleRemoveTransaction = async (id) => {
+                await supabaseClient.from('transactions').delete().eq('id', id);
+                setTransactions(prev => prev.filter(tx => tx.id !== id));
+            };
+            
+            const handleEditTransaction = async (updated) => {
+                const { data } = await supabaseClient.from('transactions').update(updated).eq('id', updated.id).select().single();
+                if (data) setTransactions(prev => prev.map(tx => tx.id === data.id ? data : tx));
+            };
+            
+            const handleImportTransactions = async (imported) => {
+                if (!isProUser) { openUpgradeModal('A importação é exclusiva do plano Pro.'); return; }
+                const withUser = imported.map(tx => ({ ...tx, user_id: user.id }));
+                const { data } = await supabaseClient.from('transactions').insert(withUser).select();
+                if (data) setTransactions(prev => [...data, ...prev]);
+};
+            
+            const handleAddTask = async (newTask) => {
+                const { data } = await supabaseClient.from('tasks').insert({ ...newTask, user_id: user.id }).select().single();
+                if (data) setTasks(prev => [data, ...prev]);
+            };
+
+            const handleUpdateTask = async (updated) => {
+                const { data } = await supabaseClient.from('tasks').update({ status: updated.status }).eq('id', updated.id).select().single();
+                if (data) setTasks(prev => prev.map(task => task.id === data.id ? data : task));
+            };
+
+            const handleRemoveTask = async (id) => {
+                await supabaseClient.from('tasks').delete().eq('id', id);
+                setTasks(prev => prev.filter(task => task.id !== id));
+            };
+
+            const renderActiveView = () => {
+                if (loading) return <div className="flex-1 flex justify-center items-center"><div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-cyan-400"></div></div>;
+                switch (activeView) {
+                    case 'chart': return <ChartView transactions={transactions} />;
+                    case 'transactions': return <TransactionsView transactions={transactions} onTransactionAdded={handleAddTransaction} onTransactionRemoved={handleRemoveTransaction} onTransactionEdited={handleEditTransaction} onTransactionsImported={handleImportTransactions} isProUser={isProUser} openUpgradeModal={openUpgradeModal} />;
+                    case 'calendar': return <CalendarView tasks={tasks} onAddTask={handleAddTask} onUpdateTask={handleUpdateTask} onRemoveTask={handleRemoveTask} />;
+                    case 'pdf_exporter': return <PdfExporterView userEmail={user.email || ''} transactions={transactions} onTransactionEdited={handleEditTransaction} isProUser={isProUser} openUpgradeModal={openUpgradeModal} />;
+                    case 'settings': return <SettingsView userEmail={user.email || ''} />;
+                    default: return <ChartView transactions={transactions} />;
+                }
+            }
+            
+            return (
+                <main className="relative z-10 container mx-auto px-6 py-8 md:py-12 flex justify-center items-start min-h-[calc(100vh-80px)] w-full">
+                    <div className="flex w-full max-w-7xl gap-8">
+                        <Sidebar activeView={activeView} setActiveView={setActiveView} onLogout={onLogout} />
+                        <div className="flex-1">{renderActiveView()}</div>
+                    </div>
+                    {isUpgradeModalOpen && <UpgradeModal message={upgradeModalMessage} onClose={() => setUpgradeModalOpen(false)} userEmail={user.email} />}
+                </main>
+            );
+        };
+        
+        // --- Main App Component ---
+        const App = () => {
+            const [view, setView] = useState('landing');
+            const [session, setSession] = useState(null);
+            const [loading, setLoading] = useState(true);
+            
+            useEffect(() => {
+                const getSession = async () => {
+                    const { data: { session } } = await supabaseClient.auth.getSession();
+                    setSession(session);
+                    if (session) setView('members');
+                    setLoading(false);
+                };
+                getSession();
+
+                const { data: { subscription } } = supabaseClient.auth.onAuthStateChange((_event, session) => {
+                    setSession(session);
+                    if (session && (view === 'login' || view === 'register')) setView('members');
+                    else if (!session) setView('landing');
+                });
+                return () => subscription.unsubscribe();
+            }, [view]);
+
+            const handleLogout = async () => {
+                await supabaseClient.auth.signOut();
+                setView('landing');
+            };
+
+            if (loading) return <div className="min-h-screen bg-slate-950 flex justify-center items-center"><div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-cyan-400"></div></div>;
+            
+            const renderView = () => {
+                switch (view) {
+                    case 'members': return session ? <MembersArea session={session} onLogout={handleLogout} /> : <LoginPage onBack={() => setView('landing')} setView={setView} />;
+                    case 'login': return <LoginPage onBack={() => setView('landing')} setView={setView} />;
+                    case 'register': return <RegisterPage onBack={() => setView('landing')} setView={setView} />;
+                    case 'landing':
+                    default:
+                        return (
+                            <>
+                                <main className="relative z-10 container mx-auto px-6 py-16 md:py-24">
+                                    <section className="grid lg:grid-cols-2 gap-12 items-center min-h-[70vh]">
+                                        <div className="text-center lg:text-left">
+                                            <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-white leading-tight mb-4 animated-gradient-text bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-cyan-400">Seu Assistente Financeiro com Inteligência Artificial</h2>
+                                            <p className="text-lg md:text-xl text-slate-300 mb-8">Sua nova plataforma de gestão financeira. Controle total das suas finanças, sem planilhas e sem dor de cabeça.</p>
+                                            <button onClick={() => setView('register')} className="inline-block bg-gradient-to-r from-green-500 to-cyan-500 hover:from-green-600 hover:to-cyan-600 text-white font-bold py-4 px-8 rounded-lg transition-all text-lg shadow-xl shadow-cyan-500/20">Teste Grátis</button>
+                                        </div>
+                                        <div><DashboardPreview /></div>
+                                    </section>
+                                    <section id="features" className="mt-20 md:mt-32">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                                            {[
+                                                { icon: <ChartIcon />, title: "Controle Diário Simplificado", description: "Acompanhe suas receitas e despesas com lançamentos simples, a qualquer hora." },
+                                                { icon: <DashboardIcon className="w-8 h-8 text-cyan-400" />, title: "Dashboard Intuitivo", description: "Visualize suas receitas, despesas e saldo em uma interface clara e moderna." },
+                                                { icon: <BotIcon className="w-8 h-8 text-cyan-400" />, title: "Inteligência Artificial Avançada", description: "Nossa IA entende seus textos e registra tudo automaticamente no seu histórico." },
+                                                { icon: <PdfIcon />, title: "Relatórios Inteligentes", description: "Receba um resumo em PDF completo e profissional para download no final do mês." }
+                                            ].map((feature, index) => (
+                                                <div key={index} className="bg-slate-800/40 p-6 rounded-xl border border-slate-700/80 flex flex-col items-start gap-4 transition-all hover:border-cyan-400/50 hover:bg-slate-800/80 backdrop-blur-sm">
+                                                    <div className="bg-slate-900/70 p-3 rounded-lg border border-slate-700">{feature.icon}</div>
+                                                    <h4 className="text-xl font-bold text-white">{feature.title}</h4>
+                                                    <p className="text-slate-400 text-sm">{feature.description}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </section>
+                                    <section id="pricing" className="mt-20 md:mt-32 max-w-2xl mx-auto">
+                                        <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-8 text-center backdrop-blur-sm">
+                                            <h3 className="text-2xl font-bold text-white mb-2">Acesso Total à Plataforma IA</h3>
+                                            <p className="text-5xl font-extrabold text-white mb-4">R$ 29<span className="text-3xl font-bold">,90</span><span className="text-lg font-medium text-slate-400">/mês</span></p>
+                                            <ul className="space-y-3 text-slate-300 my-8 text-left max-w-sm mx-auto">
+                                                <li className="flex items-center gap-3"><CheckIcon /> Controle diário de receitas e despesas</li>
+                                                <li className="flex items-center gap-3"><CheckIcon /> Dashboard completo e intuitivo</li>
+                                                <li className="flex items-center gap-3"><CheckIcon /> Inteligência Artificial para análise</li>
+                                                <li className="flex items-center gap-3"><CheckIcon /> Relatório em PDF no fim do mês</li>
+                                                <li className="flex items-center gap-3"><CheckIcon /> Suporte prioritário</li>
+                                            </ul>
+                                            <button onClick={() => setView('register')} className="w-full bg-gradient-to-r from-green-500 to-cyan-500 hover:from-green-600 hover:to-cyan-600 text-white font-bold py-3 px-6 rounded-lg transition-all text-lg shadow-lg shadow-cyan-500/20">Teste Grátis</button>
+                                            <p className="text-xs text-slate-500 mt-4">Cancele quando quiser. Sem burocracia.</p>
+                                        </div>
+                                    </section>
+                                </main>
+                                <footer className="relative z-10 text-center py-8 mt-16 border-t border-slate-800"><p className="text-slate-500">&copy; {new Date().getFullYear()} AIFinance. Todos os direitos reservados.</p></footer>
+                            </>
+                        );
+                }
+            };
+
+            return (
+                <div className="min-h-screen bg-slate-950 text-slate-200 overflow-x-hidden">
+                    <div className="absolute top-0 left-0 w-full h-full bg-[url('https://images.pexels.com/photos/8386440/pexels-photo-8386440.jpeg')] bg-cover bg-center opacity-10 z-0"></div>
+                    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-slate-950/30 via-slate-950/80 to-slate-950 z-0"></div>
+                    <header className="sticky top-0 z-20 py-4 px-6 md:px-12 flex justify-between items-center bg-slate-900/50 backdrop-blur-lg border-b border-slate-700/50">
+                        <h1 className="text-xl font-bold text-white tracking-tight cursor-pointer" onClick={() => setView('landing')}><span className="text-cyan-400">AI</span>Finance</h1>
+                        <div className="flex items-center gap-4">
+                            {!session && view === 'landing' && (
+                                 <button onClick={() => setView('login')} className="bg-transparent hover:bg-cyan-400/10 text-cyan-400 font-bold py-2 px-4 rounded-lg transition-all flex items-center gap-2 text-sm md:text-base border border-cyan-400/50">
+                                    <LoginIcon />Login
+                                </button>
+                            )}
+                        </div>
+                    </header>
+                    <div className="relative z-10">{renderView()}</div>
+                </div>
+            );
+        };
+
+        // --- Mount the App ---
+        const rootElement = document.getElementById('root');
+        const root = ReactDOM.createRoot(rootElement);
+        root.render(<App />);
+    </script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
