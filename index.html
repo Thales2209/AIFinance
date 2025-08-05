@@ -446,7 +446,19 @@
         };
         
         const ChartView = ({ transactions }) => {
+             if (typeof Recharts === 'undefined') {
+                return (
+                    <div className="w-full">
+                        <h2 className="text-3xl font-bold text-white mb-6">Resumo Financeiro Anual</h2>
+                        <div className="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 backdrop-blur-sm h-[500px] flex justify-center items-center">
+                            <p className="text-slate-400">Carregando gráfico...</p>
+                        </div>
+                    </div>
+                );
+            }
+
             const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = Recharts;
+
             const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
             const monthlyData = useMemo(() => {
                 const data = months.map(month => ({ name: month, Receita: 0, Despesa: 0 }));
